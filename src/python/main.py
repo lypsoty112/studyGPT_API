@@ -12,7 +12,6 @@ FILETYPES = [
     "text/html",
     "text/markdown",
 ]
-OPENAI_KEY = "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"
 
 
 async def main():

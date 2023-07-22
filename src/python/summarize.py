@@ -1,6 +1,7 @@
 import openai
 
-OPENAI_KEY = "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"
+OPENAI_KEY = ""
+
 
 async def summarize(text):
     openai.api_key = OPENAI_KEY
@@ -14,13 +15,5 @@ async def summarize(text):
         top_p=1,
         frequency_penalty=0,
         presence_penalty=0,
-        stop=["\n", " Human:", " AI:"]
+        stop=["\n", " Human:", " AI:"],
     )
-
-
-
-
-
-
-
-    
