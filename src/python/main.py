@@ -5,14 +5,22 @@ from summarize import summarize
 import asyncio
 
 ARGS_NUM = 6
-FILETYPES = ["application/pdf", "application/msword", "text/plain", "text/html", "text/markdown"]
+FILETYPES = [
+    "application/pdf",
+    "application/msword",
+    "text/plain",
+    "text/html",
+    "text/markdown",
+]
 OPENAI_KEY = "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"
 
 
 async def main():
     # Parse the command line arguments
     if len(sys.argv) != ARGS_NUM:
-        print("Usage: python summarize.py <path> <encoding> <mimetype> <filename> <size> ")
+        print(
+            "Usage: python summarize.py <path> <encoding> <mimetype> <filename> <size> "
+        )
         sys.exit(1)
     # Get the arguments
     fileInfo = {
@@ -20,7 +28,7 @@ async def main():
         "encoding": sys.argv[2],
         "mimetype": sys.argv[3],
         "filename": sys.argv[4],
-        "size": sys.argv[5]
+        "size": sys.argv[5],
     }
     # Print the arguments
 
