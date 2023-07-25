@@ -1,11 +1,11 @@
 module.exports = {
   log: {
-    level: "silly",
+    level: "info",
     disabled: false,
   },
   database: {
     client: "mysql2",
-    name: "studyGPT_development",
+    name: "studyGPT_production",
   },
   cors: {
     origins: ["http://localhost:5173"],
@@ -15,6 +15,6 @@ module.exports = {
     path: "./src/python/main.py",
   },
   upload: {
-    fileSizeLimit: 30000000, // 30MB
+    fileSizeLimit: 15000000, // 15MB
   },
 };
