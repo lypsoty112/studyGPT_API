@@ -1,8 +1,9 @@
-const Router = require('@koa/router');
+const Router = require("@koa/router");
 
-const service = require('../service/parameter');
-const validate = require('./_validation.js');
-const { idValidation } = require('./__validations');
+const service = require("../service/parameter");
+const validate = require("./_validation.js");
+const { idValidation } = require("./__validations");
+const { permissions, hasPermission } = require("../core/auth");
 
 // -------------------
 // Get all
@@ -30,10 +31,20 @@ getParameterById.validationScheme = {
 // Exports
 // -------------------
 module.exports = (app) => {
-  const router = new Router({ prefix: '/parameter' });
+  const router = new Router({ prefix: "/parameter" });
 
-  router.get('/', validate(getAllParameters.validationScheme), getAllParameters);
-  router.get('/:parameterId', validate(getParameterById.validationScheme), getParameterById);
+  router.get(
+    "/",
+    hasPermission(permissions.read, permissions.userRead),
+    validate(getAllParameters.validationScheme),
+    getAllParameters
+  );
+  router.get(
+    "/:parameterId",
+    hasPermission(permissions.read, permissions.userRead),
+    validate(getParameterById.validationScheme),
+    getParameterById
+  );
 
   app.use(router.routes()).use(router.allowedMethods());
 };

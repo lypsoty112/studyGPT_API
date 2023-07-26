@@ -1,26 +1,25 @@
-
-
 // -------------------
 // Currency
 // -------------------
 
 const formatOutgoingCurrency = (currency) => {
-    if (!currency) throw ServiceError.notFound('Currency does not exist');
-    if (currency === undefined) throw ServiceError.notFound('Currency does not exist');
-    return {
-        currencyId: currency.currency_id,
-        name: currency.name,
-        symbol: currency.symbol,
-    };
+  if (!currency) throw ServiceError.notFound("Currency does not exist");
+  if (currency === undefined)
+    throw ServiceError.notFound("Currency does not exist");
+  return {
+    currencyId: currency.currency_id,
+    name: currency.name,
+    symbol: currency.symbol,
+  };
 };
 
 const formatIncomingCurrency = (currency) => {
-    if (!currency) return null;
-    if (currency === undefined) return null;
-    return {
-        name: currency.name,
-        symbol: currency.symbol,
-    };
+  if (!currency) return null;
+  if (currency === undefined) return null;
+  return {
+    name: currency.name,
+    symbol: currency.symbol,
+  };
 };
 
 // -------------------
@@ -28,8 +27,9 @@ const formatIncomingCurrency = (currency) => {
 // -------------------
 
 const formatOutgoingParameter = (parameter) => {
-  if (!parameter) throw ServiceError.notFound('Parameter does not exist');
-  if (parameter === undefined) throw ServiceError.notFound('Parameter does not exist');
+  if (!parameter) throw ServiceError.notFound("Parameter does not exist");
+  if (parameter === undefined)
+    throw ServiceError.notFound("Parameter does not exist");
   return {
     parameterId: parameter.parameter_id,
     name: parameter.name,
@@ -50,8 +50,9 @@ const formatIncomingParameter = (parameter) => {
 // Payment
 // -------------------
 const formatOutgoingPayment = (payment) => {
-  if (!payment) throw ServiceError.notFound('Payment does not exist');
-  if (payment === undefined) throw ServiceError.notFound('Payment does not exist');
+  if (!payment) throw ServiceError.notFound("Payment does not exist");
+  if (payment === undefined)
+    throw ServiceError.notFound("Payment does not exist");
   return {
     paymentId: payment.payment_id,
     subscriptionId: payment.subscription_id,
@@ -82,8 +83,9 @@ const formatIncomingPayment = (payment) => {
 // Status
 // -------------------
 const formatOutgoingStatus = (status) => {
-  if (!status) throw ServiceError.notFound('Status does not exist');
-  if (status === undefined) throw ServiceError.notFound('Status does not exist');
+  if (!status) throw ServiceError.notFound("Status does not exist");
+  if (status === undefined)
+    throw ServiceError.notFound("Status does not exist");
   return {
     statusId: status.status_id,
     name: status.name,
@@ -102,8 +104,9 @@ const formatIncomingStatus = (status) => {
 // Subscription
 // -------------------
 const formatOutgoingSubscription = (subscription) => {
-  if (!subscription) throw ServiceError.notFound('Subscription does not exist');
-  if (subscription === undefined) throw ServiceError.notFound('Subscription does not exist');
+  if (!subscription) throw ServiceError.notFound("Subscription does not exist");
+  if (subscription === undefined)
+    throw ServiceError.notFound("Subscription does not exist");
   return {
     subscriptionId: subscription.subscription_id,
     name: subscription.name,
@@ -130,8 +133,9 @@ const formatIncomingSubscription = (subscription) => {
 // Summary
 // -------------------
 const formatOutgoingSummary = (summary) => {
-  if (!summary) throw ServiceError.notFound('Summary does not exist');
-  if (summary === undefined) throw ServiceError.notFound('Summary does not exist');
+  if (!summary) throw ServiceError.notFound("Summary does not exist");
+  if (summary === undefined)
+    throw ServiceError.notFound("Summary does not exist");
   return {
     summaryId: summary.summary_id,
     userId: summary.user_id,
@@ -139,7 +143,7 @@ const formatOutgoingSummary = (summary) => {
     dateModified: summary.date_modified,
     content: summary.content,
     name: summary.name,
-    description: summary.description
+    description: summary.description,
   };
 };
 
@@ -152,7 +156,7 @@ const formatIncomingSummary = (summary) => {
     date_modified: summary.dateModified,
     content: summary.content,
     name: summary.name,
-    description: summary.description
+    description: summary.description,
   };
 };
 
@@ -174,13 +178,14 @@ const formatIncomingFile = (file) => {
 // User
 // -------------------
 const formatOutgoingUser = (user) => {
-  if (!user) throw ServiceError.notFound('User does not exist');
-  if (user === undefined) throw ServiceError.notFound('User does not exist');
+  if (!user) throw ServiceError.notFound("User does not exist");
+  if (user === undefined) throw ServiceError.notFound("User does not exist");
   return {
     userId: user.user_id,
     subscriptionId: user.subscription_id,
     email: user.email,
-    registrationDate: user.registration_date
+    auth0Id: user.auth0Id,
+    registrationDate: user.registration_date,
   };
 };
 
@@ -190,35 +195,35 @@ const formatIncomingUser = (user) => {
   return {
     subscription_id: user.subscriptionId,
     email: user.email,
+    auth0Id: user.auth0Id,
     password: user.password,
-    registration_date: user.registrationDate
+    registration_date: user.registrationDate,
   };
 };
-
 
 // -------------------
 // Exports
 // -------------------
 module.exports = {
-    formatOutgoingCurrency,
-    formatIncomingCurrency,
-    // -------------------
-    formatOutgoingParameter,
-    formatIncomingParameter,
-    // -------------------
-    formatOutgoingPayment,
-    formatIncomingPayment,
-    // -------------------
-    formatOutgoingStatus,
-    formatIncomingStatus,
-    // -------------------
-    formatOutgoingSubscription,
-    formatIncomingSubscription,
-    // -------------------
-    formatOutgoingSummary,
-    formatIncomingSummary,
-    formatIncomingFile,
-    // -------------------
-    formatOutgoingUser,
-    formatIncomingUser
+  formatOutgoingCurrency,
+  formatIncomingCurrency,
+  // -------------------
+  formatOutgoingParameter,
+  formatIncomingParameter,
+  // -------------------
+  formatOutgoingPayment,
+  formatIncomingPayment,
+  // -------------------
+  formatOutgoingStatus,
+  formatIncomingStatus,
+  // -------------------
+  formatOutgoingSubscription,
+  formatIncomingSubscription,
+  // -------------------
+  formatOutgoingSummary,
+  formatIncomingSummary,
+  formatIncomingFile,
+  // -------------------
+  formatOutgoingUser,
+  formatIncomingUser,
 };

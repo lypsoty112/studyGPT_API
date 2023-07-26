@@ -1,7 +1,7 @@
-const Router = require('@koa/router');
+const Router = require("@koa/router");
 
-const healthService = require('../service/health');
-const validate = require('./_validation');
+const healthService = require("../service/health");
+const validate = require("./_validation");
 
 // -------------------
 // Ping
@@ -26,13 +26,11 @@ getVersion.validationScheme = null;
 // -------------------
 module.exports = function installPlacesRoutes(app) {
   const router = new Router({
-    prefix: '/health',
+    prefix: "/health",
   });
 
-  router.get('/ping', validate(ping.validationScheme), ping);
-  router.get('/version', validate(getVersion.validationScheme), getVersion);
+  router.get("/ping", validate(ping.validationScheme), ping);
+  router.get("/version", validate(getVersion.validationScheme), getVersion);
 
-  app
-    .use(router.routes())
-    .use(router.allowedMethods());
+  app.use(router.routes()).use(router.allowedMethods());
 };

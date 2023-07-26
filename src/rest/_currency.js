@@ -1,8 +1,9 @@
-const Joi = require('joi');
-const Router = require('@koa/router');
-const service = require('../service/currency');
-const validate = require('./_validation.js');
-const { idValidation } = require('./__validations');
+const Joi = require("joi");
+const Router = require("@koa/router");
+const service = require("../service/currency");
+const validate = require("./_validation.js");
+const { idValidation } = require("./__validations");
+const { permissions, hasPermission } = require("../core/auth");
 
 // -------------------
 // Get all
@@ -30,10 +31,20 @@ getCurrencyById.validationScheme = {
 // Exports
 // -------------------
 module.exports = (app) => {
-  const router = new Router({ prefix: '/currency' });
+  const router = new Router({ prefix: "/currency" });
 
-  router.get('/', validate(getAllCurrencies.validationScheme), getAllCurrencies);
-  router.get('/:currencyId', validate(getCurrencyById.validationScheme), getCurrencyById);
+  router.get(
+    "/",
+    hasPermission(permissions.read, permissions.userRead),
+    validate(getAllCurrencies.validationScheme),
+    getAllCurrencies
+  );
+  router.get(
+    "/:currencyId",
+    hasPermission(permissions.read, permissions.userRead),
+    validate(getCurrencyById.validationScheme),
+    getCurrencyById
+  );
 
   app.use(router.routes()).use(router.allowedMethods());
 };

@@ -1,8 +1,9 @@
-const Router = require('@koa/router');
+const Router = require("@koa/router");
 
-const service = require('../service/payment');
-const validate = require('./_validation.js');
-const { idValidation, paymentBodyValidation } = require('./__validations');
+const service = require("../service/payment");
+const validate = require("./_validation.js");
+const { idValidation, paymentBodyValidation } = require("./__validations");
+const { permissions, hasPermission } = require("../core/auth");
 
 // -------------------
 // Get all
@@ -82,14 +83,39 @@ deletePayment.validationScheme = {
 // Exports
 // -------------------
 module.exports = (app) => {
-  const router = new Router({ prefix: '/payment' });
+  const router = new Router({ prefix: "/payment" });
 
-  router.get('/', validate(getAllPayments.validationScheme), getAllPayments);
-  router.get('/:paymentId', validate(getPaymentById.validationScheme), getPaymentById);
-  router.get('/user/:userId', validate(getPaymentByUserId.validationScheme), getPaymentByUserId);
-  router.post('/', validate(createPayment.validationScheme), createPayment);
-  router.put('/:paymentId', validate(updatePayment.validationScheme), updatePayment);
-  router.delete('/:paymentId', validate(deletePayment.validationScheme), deletePayment);
+  router.get("/", validate(getAllPayments.validationScheme), getAllPayments);
+  router.get(
+    "/:paymentId",
+    hasPermission(permissions.read, permissions.userRead),
+    validate(getPaymentById.validationScheme),
+    getPaymentById
+  );
+  router.get(
+    "/user/:userId",
+    hasPermission(permissions.read, permissions.userRead),
+    validate(getPaymentByUserId.validationScheme),
+    getPaymentByUserId
+  );
+  router.post(
+    "/",
+    hasPermission(permissions.write),
+    validate(createPayment.validationScheme),
+    createPayment
+  );
+  router.put(
+    "/:paymentId",
+    hasPermission(permissions.write),
+    validate(updatePayment.validationScheme),
+    updatePayment
+  );
+  router.delete(
+    "/:paymentId",
+    hasPermission(permissions.write),
+    validate(deletePayment.validationScheme),
+    deletePayment
+  );
 
   app.use(router.routes()).use(router.allowedMethods());
 };

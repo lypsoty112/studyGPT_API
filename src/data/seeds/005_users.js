@@ -7,8 +7,22 @@ module.exports = {
 
     // Insert
     await knex(tables.user).insert([
-      { user_id: 1, subscription_id: 1, email: 'john.doe@gmail.com', password: 'password1', registration_date: '2022-07-01' },
-      { user_id: 2, subscription_id: 2, email: 'jane.doe@gmail.com', password: 'password2', registration_date: '2022-08-01' },
+      {
+        user_id: 1,
+        subscription_id: 1,
+        email: "john.doe@gmail.com",
+        password: "password1",
+        auth0id: "rferagq",
+        registration_date: "2022-07-01",
+      },
+      {
+        user_id: 2,
+        subscription_id: 2,
+        email: "jane.doe@gmail.com",
+        password: "password2",
+        auth0id: "fdq",
+        registration_date: "2022-08-01",
+      },
     ]);
   },
 };

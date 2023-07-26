@@ -1,8 +1,9 @@
-const Router = require('@koa/router');
+const Router = require("@koa/router");
 
-const service = require('../service/subscription');
-const validate = require('./_validation.js');
-const { idValidation, subscriptionBodyValidation } = require('./__validations');
+const service = require("../service/subscription");
+const validate = require("./_validation.js");
+const { idValidation, subscriptionBodyValidation } = require("./__validations");
+const { permissions, hasPermission } = require("../core/auth");
 
 // -------------------
 // Get all
@@ -35,14 +36,17 @@ const createSubscription = async (ctx) => {
   ctx.status = 201;
 };
 createSubscription.validationScheme = {
-  body: subscriptionBodyValidation
+  body: subscriptionBodyValidation,
 };
 
 // -------------------
 // Update
 // -------------------
 const updateSubscription = async (ctx) => {
-  ctx.body = await service.updateById(ctx.params.subscriptionId, ctx.request.body);
+  ctx.body = await service.updateById(
+    ctx.params.subscriptionId,
+    ctx.request.body
+  );
   ctx.status = 200;
 };
 updateSubscription.validationScheme = {
@@ -69,13 +73,36 @@ deleteSubscription.validationScheme = {
 // Exports
 // -------------------
 module.exports = (app) => {
-  const router = new Router({ prefix: '/subscription' });
+  const router = new Router({ prefix: "/subscription" });
 
-  router.get('/', validate(getAllSubscriptions.validationScheme), getAllSubscriptions);
-  router.get('/:subscriptionId', validate(getSubscriptionById.validationScheme), getSubscriptionById);
-  router.post('/', validate(createSubscription.validationScheme), createSubscription);
-  router.put('/:subscriptionId', validate(updateSubscription.validationScheme), updateSubscription);
-  router.delete('/:subscriptionId', validate(deleteSubscription.validationScheme), deleteSubscription);
+  router.get(
+    "/",
+    validate(getAllSubscriptions.validationScheme),
+    getAllSubscriptions
+  );
+  router.get(
+    "/:subscriptionId",
+    validate(getSubscriptionById.validationScheme),
+    getSubscriptionById
+  );
+  router.post(
+    "/",
+    hasPermission(permissions.write),
+    validate(createSubscription.validationScheme),
+    createSubscription
+  );
+  router.put(
+    "/:subscriptionId",
+    hasPermission(permissions.write),
+    validate(updateSubscription.validationScheme),
+    updateSubscription
+  );
+  router.delete(
+    "/:subscriptionId",
+    hasPermission(permissions.write),
+    validate(deleteSubscription.validationScheme),
+    deleteSubscription
+  );
 
   app.use(router.routes()).use(router.allowedMethods());
 };

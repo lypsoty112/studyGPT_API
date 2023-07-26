@@ -1,8 +1,9 @@
-const Router = require('@koa/router');
+const Router = require("@koa/router");
 
-const service = require('../service/user');
-const validate = require('./_validation.js');
-const { idValidation, userBodyValidation } = require('./__validations');
+const service = require("../service/user");
+const validate = require("./_validation.js");
+const { idValidation, userBodyValidation } = require("./__validations");
+const { permissions, hasPermission } = require("../core/auth");
 
 // -------------------
 // Get all
@@ -22,7 +23,7 @@ const getUserById = async (ctx) => {
 };
 getUserById.validationScheme = {
   params: {
-    userId: idValidation
+    userId: idValidation,
   },
 };
 
@@ -35,7 +36,7 @@ const createUser = async (ctx) => {
   ctx.status = 201;
 };
 createUser.validationScheme = {
-  body: userBodyValidation
+  body: userBodyValidation,
 };
 
 // -------------------
@@ -47,7 +48,7 @@ const updateUser = async (ctx) => {
 };
 updateUser.validationScheme = {
   params: {
-    userId: idValidation
+    userId: idValidation,
   },
   body: userBodyValidation,
 };
@@ -61,7 +62,7 @@ const deleteUser = async (ctx) => {
 };
 deleteUser.validationScheme = {
   params: {
-    userId: idValidation
+    userId: idValidation,
   },
 };
 
@@ -69,13 +70,33 @@ deleteUser.validationScheme = {
 // Exports
 // -------------------
 module.exports = (app) => {
-  const router = new Router({ prefix: '/user' });
+  const router = new Router({ prefix: "/user" });
 
-  router.get('/', validate(getAllUsers.validationScheme), getAllUsers);
-  router.get('/:userId', validate(getUserById.validationScheme), getUserById);
-  router.post('/', validate(createUser.validationScheme), createUser);
-  router.put('/:userId', validate(updateUser.validationScheme), updateUser);
-  router.delete('/:userId', validate(deleteUser.validationScheme), deleteUser);
+  router.get(
+    "/",
+    hasPermission(permissions.read),
+    validate(getAllUsers.validationScheme),
+    getAllUsers
+  );
+  router.get(
+    "/:userId",
+    hasPermission(permissions.read, permissions.userRead),
+    validate(getUserById.validationScheme),
+    getUserById
+  );
+  router.post("/", validate(createUser.validationScheme), createUser);
+  router.put(
+    "/:userId",
+    hasPermission(permissions.write, permissions.userWrite),
+    validate(updateUser.validationScheme),
+    updateUser
+  );
+  router.delete(
+    "/:userId",
+    hasPermission(permissions.write, permissions.userWrite),
+    validate(deleteUser.validationScheme),
+    deleteUser
+  );
 
   app.use(router.routes()).use(router.allowedMethods());
 };

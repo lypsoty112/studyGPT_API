@@ -1,12 +1,14 @@
-const Router = require('@koa/router');
-const Joi = require('joi');
-const multer = require('@koa/multer');
+const Router = require("@koa/router");
+const Joi = require("joi");
+const multer = require("@koa/multer");
 
-const service = require('../service/summary');
-const validate = require('./_validation.js');
-const { idValidation, summaryBodyValidation } = require('./__validations');
-const config = require('config');
-const fileSizeLimit = config.get('upload.fileSizeLimit');
+const service = require("../service/summary");
+const validate = require("./_validation.js");
+const { idValidation, summaryBodyValidation } = require("./__validations");
+const { permissions, hasPermission } = require("../core/auth");
+
+const config = require("config");
+const fileSizeLimit = config.get("upload.fileSizeLimit");
 
 // -------------------
 // Get all
@@ -50,7 +52,7 @@ const postSummary = async (ctx) => {
   ctx.status = 201;
 };
 postSummary.validationScheme = {
-  body: summaryBodyValidation
+  body: summaryBodyValidation,
 };
 
 // -------------------
@@ -86,25 +88,49 @@ deleteSummary.validationScheme = {
 // -------------------
 
 module.exports = (app) => {
-  const router = new Router({ prefix: '/summary' });
-  const upload = multer({ 
-    storage: multer.diskStorage(
-      {
-        destination: function (req, file, cb) {
-          cb(null, 'data/uploads');
-        },
-      }
-    ),
+  const router = new Router({ prefix: "/summary" });
+  const upload = multer({
+    storage: multer.diskStorage({
+      destination: function (req, file, cb) {
+        cb(null, "data/uploads");
+      },
+    }),
     limits: {
       fileSize: fileSizeLimit,
     },
   });
-  router.get('/', getSummaries);
-  router.get('/:summaryId', validate(getSummaryById.validationScheme), getSummaryById);
-  router.post('/create', upload.single('file'), validate(createSummary.validationScheme), createSummary);
-  router.post('/', validate(postSummary.validationScheme), postSummary);
-  router.put('/:summaryId', validate(updateSummary.validationScheme), updateSummary);
-  router.delete('/:summaryId', validate(deleteSummary.validationScheme), deleteSummary);
+  router.get("/", hasPermission(permissions.read), getSummaries);
+  router.get(
+    "/:summaryId",
+    hasPermission(permissions.read, permissions.userRead),
+    validate(getSummaryById.validationScheme),
+    getSummaryById
+  );
+  router.post(
+    "/create",
+    upload.single("file"),
+    hasPermission(permissions.write, permissions.userWrite),
+    validate(createSummary.validationScheme),
+    createSummary
+  );
+  router.post(
+    "/",
+    hasPermission(permissions.write),
+    validate(postSummary.validationScheme),
+    postSummary
+  );
+  router.put(
+    "/:summaryId",
+    hasPermission(permissions.write, permissions.userWrite),
+    validate(updateSummary.validationScheme),
+    updateSummary
+  );
+  router.delete(
+    "/:summaryId",
+    hasPermission(permissions.write, permissions.userWrite),
+    validate(deleteSummary.validationScheme),
+    deleteSummary
+  );
 
   app.use(router.routes()).use(router.allowedMethods());
 };
