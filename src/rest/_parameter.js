@@ -3,7 +3,6 @@ const Router = require("@koa/router");
 const service = require("../service/parameter");
 const validate = require("./_validation.js");
 const { idValidation } = require("./__validations");
-const { permissions, hasPermission } = require("../core/auth");
 
 // -------------------
 // Get all
@@ -35,13 +34,11 @@ module.exports = (app) => {
 
   router.get(
     "/",
-    hasPermission(permissions.read, permissions.userRead),
     validate(getAllParameters.validationScheme),
     getAllParameters
   );
   router.get(
     "/:parameterId",
-    hasPermission(permissions.read, permissions.userRead),
     validate(getParameterById.validationScheme),
     getParameterById
   );

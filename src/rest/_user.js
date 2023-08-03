@@ -3,7 +3,6 @@ const Router = require("@koa/router");
 const service = require("../service/user");
 const validate = require("./_validation.js");
 const { idValidation, userBodyValidation } = require("./__validations");
-const { permissions, hasPermission } = require("../core/auth");
 
 // -------------------
 // Get all
@@ -72,31 +71,11 @@ deleteUser.validationScheme = {
 module.exports = (app) => {
   const router = new Router({ prefix: "/user" });
 
-  router.get(
-    "/",
-    hasPermission(permissions.read),
-    validate(getAllUsers.validationScheme),
-    getAllUsers
-  );
-  router.get(
-    "/:userId",
-    hasPermission(permissions.read, permissions.userRead),
-    validate(getUserById.validationScheme),
-    getUserById
-  );
+  router.get("/", validate(getAllUsers.validationScheme), getAllUsers);
+  router.get("/:userId", validate(getUserById.validationScheme), getUserById);
   router.post("/", validate(createUser.validationScheme), createUser);
-  router.put(
-    "/:userId",
-    hasPermission(permissions.write, permissions.userWrite),
-    validate(updateUser.validationScheme),
-    updateUser
-  );
-  router.delete(
-    "/:userId",
-    hasPermission(permissions.write, permissions.userWrite),
-    validate(deleteUser.validationScheme),
-    deleteUser
-  );
+  router.put("/:userId", validate(updateUser.validationScheme), updateUser);
+  router.delete("/:userId", validate(deleteUser.validationScheme), deleteUser);
 
   app.use(router.routes()).use(router.allowedMethods());
 };

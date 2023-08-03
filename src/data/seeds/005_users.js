@@ -12,7 +12,6 @@ module.exports = {
         subscription_id: 1,
         email: "john.doe@gmail.com",
         password: "password1",
-        auth0id: "rferagq",
         registration_date: "2022-07-01",
       },
       {
@@ -20,7 +19,6 @@ module.exports = {
         subscription_id: 2,
         email: "jane.doe@gmail.com",
         password: "password2",
-        auth0id: "fdq",
         registration_date: "2022-08-01",
       },
     ]);

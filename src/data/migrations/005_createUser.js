@@ -5,7 +5,6 @@ exports.up = async function (knex) {
     table.increments("user_id").unsigned().notNullable().primary();
     table.integer("subscription_id").unsigned().notNullable();
     table.string("email", 150).notNullable();
-    table.string("auth0id", 255).notNullable();
     table.string("password", 255).default(null);
     table.date("registration_date").notNullable();
 

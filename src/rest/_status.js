@@ -3,7 +3,6 @@ const Router = require("@koa/router");
 const service = require("../service/status");
 const validate = require("./_validation.js");
 const { idValidation } = require("./__validations");
-const { permissions, hasPermission } = require("../core/auth");
 
 // -------------------
 // Get all
@@ -33,15 +32,9 @@ getStatusById.validationScheme = {
 module.exports = (app) => {
   const router = new Router({ prefix: "/status" });
 
-  router.get(
-    "/",
-    hasPermission(permissions.read, permissions.userRead),
-    validate(getAllStatuses.validationScheme),
-    getAllStatuses
-  );
+  router.get("/", validate(getAllStatuses.validationScheme), getAllStatuses);
   router.get(
     "/:statusId",
-    hasPermission(permissions.read, permissions.userRead),
     validate(getStatusById.validationScheme),
     getStatusById
   );

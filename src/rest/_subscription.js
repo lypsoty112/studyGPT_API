@@ -3,7 +3,6 @@ const Router = require("@koa/router");
 const service = require("../service/subscription");
 const validate = require("./_validation.js");
 const { idValidation, subscriptionBodyValidation } = require("./__validations");
-const { permissions, hasPermission } = require("../core/auth");
 
 // -------------------
 // Get all
@@ -87,19 +86,16 @@ module.exports = (app) => {
   );
   router.post(
     "/",
-    hasPermission(permissions.write),
     validate(createSubscription.validationScheme),
     createSubscription
   );
   router.put(
     "/:subscriptionId",
-    hasPermission(permissions.write),
     validate(updateSubscription.validationScheme),
     updateSubscription
   );
   router.delete(
     "/:subscriptionId",
-    hasPermission(permissions.write),
     validate(deleteSubscription.validationScheme),
     deleteSubscription
   );

@@ -33,17 +33,6 @@ const findByEmail = async (email) => {
 };
 
 // ------------------------------------
-// find by auth0 id
-// ------------------------------------
-const findByAuth0Id = async (auth0Id) => {
-  try {
-    return getKnex()(tables.user).select().where("auth0id", auth0Id).first();
-  } catch (err) {
-    getLogger().error(err);
-    throw err;
-  }
-};
-// ------------------------------------
 // create
 // ------------------------------------
 const create = async (userObject) => {
@@ -99,7 +88,6 @@ module.exports = {
   findAll,
   findById,
   findByEmail,
-  findByAuth0Id,
   create,
   update,
   deleteById,

@@ -184,7 +184,6 @@ const formatOutgoingUser = (user) => {
     userId: user.user_id,
     subscriptionId: user.subscription_id,
     email: user.email,
-    auth0Id: user.auth0Id,
     registrationDate: user.registration_date,
   };
 };
@@ -195,7 +194,6 @@ const formatIncomingUser = (user) => {
   return {
     subscription_id: user.subscriptionId,
     email: user.email,
-    auth0Id: user.auth0Id,
     password: user.password,
     registration_date: user.registrationDate,
   };

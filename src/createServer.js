@@ -9,7 +9,6 @@ const { initializeData, shutdown } = require("./data");
 const installRest = require("./rest");
 
 const config = require("config");
-const { checkJwtToken } = require("./core/auth");
 const CORS_ORIGINS = config.get("cors.origins");
 const CORS_MAX_AGE = config.get("cors.maxAge");
 const NODE_ENV = config.get("env");
@@ -42,9 +41,6 @@ module.exports = async function createServer() {
       maxAge: CORS_MAX_AGE,
     })
   );
-
-  // Authorization
-  app.use(checkJwtToken());
 
   // Body parser
   app.use(bodyParser());

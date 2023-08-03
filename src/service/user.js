@@ -35,24 +35,12 @@ const getById = async (userId) => {
 };
 
 // -------------------
-// Get by auth0 id
-// -------------------
-const getByAuth0Id = async (auth0Id) => {
-  debugLog(`Fetching user with auth0 id ${auth0Id}`);
-  const user = await userRepo.findByAuth0Id(auth0Id);
-  return formatOutgoingUser(user);
-};
-
-// -------------------
 // Create
 // -------------------
 const create = async (userObject) => {
   debugLog(`Creating new user: ${JSON.stringify(userObject)}`);
   let user = formatIncomingUser(userObject);
-  if (
-    (await userRepo.findByEmail(user.email)) ||
-    (await userRepo.findByAuth0Id(user.auth0Id))
-  ) {
+  if (await userRepo.findByEmail(user.email)) {
     throw ServiceError.conflict("User already exists");
   } else {
     try {
@@ -110,7 +98,6 @@ const deleteById = async (userId) => {
 module.exports = {
   getAll,
   getById,
-  getByAuth0Id,
   create,
   updateById,
   deleteById,
