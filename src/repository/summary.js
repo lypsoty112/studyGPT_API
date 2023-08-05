@@ -1,62 +1,83 @@
-const { tables, getKnex } = require('../data/index');
-const { getLogger } = require('../core/logging');
+const { tables, getKnex } = require("../data/index");
+const { getLogger } = require("../core/logging");
 
 // ------------------------------------
 // find all
 // ------------------------------------
 const findAll = async () => {
-  return getKnex()(tables.summary).select().orderBy('summary_id');
-}
+  try {
+    return await getKnex().select().from(tables.summary).orderBy("summary_id");
+  } catch (err) {
+    getLogger().error(err);
+    throw err;
+  }
+};
 
 // ------------------------------------
 // find by id
 // ------------------------------------
 const findById = async (summaryId) => {
   try {
-    return getKnex()(tables.summary).select().where('summary_id', summaryId).first();
+    return await getKnex()
+      .select()
+      .from(tables.summary)
+      .where({ summary_id: summaryId })
+      .first();
   } catch (err) {
     getLogger().error(err);
     throw err;
   }
-}
+};
 
 // ------------------------------------
 // create
 // ------------------------------------
 const create = async (summaryObject) => {
   try {
-    const result = await getKnex()(tables.summary).insert(summaryObject);
-    return result[0];
+    return (await getKnex()(tables.summary).insert(summaryObject))[0];
   } catch (err) {
-    const logger = getLogger();
-    logger.error(`Error creating summary with values ${JSON.stringify(summaryObject)}`, err);
+    getLogger().error(err);
     throw err;
   }
-}
+};
 
 // ------------------------------------
 // update
 // ------------------------------------
 const update = async (summaryId, summaryObject) => {
   try {
-    await getKnex()(tables.summary).where('summary_id', summaryId).update(summaryObject);
-    return summaryId;
+    return await getKnex()(tables.summary)
+      .where({ summary_id: summaryId })
+      .update(summaryObject);
   } catch (err) {
-    const logger = getLogger();
-    logger.error(`Error updating summary with id ${summaryId}`, err);
+    getLogger().error(err);
     throw err;
   }
-}
+};
 
 // ------------------------------------
 // delete
 // ------------------------------------
 const deleteById = async (summaryId) => {
   try {
-    await getKnex()(tables.summary).where('summary_id', summaryId).del();
+    await getKnex()(tables.summary).where({ summary_id: summaryId }).del();
   } catch (err) {
-    const logger = getLogger();
-    logger.error(`Error deleting summary with id ${summaryId}`, err);
+    getLogger().error(err);
+    throw err;
+  }
+};
+
+// ------------------------------------
+// Find by user id
+// ------------------------------------
+const findByUserId = async (userId) => {
+  try {
+    return await getKnex()
+      .select()
+      .from(tables.summary)
+      .where({ user_id: userId });
+  } catch (err) {
+    getLogger().error(err);
     throw err;
   }
 };
@@ -69,5 +90,6 @@ module.exports = {
   findById,
   create,
   update,
-  deleteById
+  deleteById,
+  findByUserId,
 };

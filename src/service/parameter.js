@@ -1,7 +1,6 @@
-const parameterRepo = require('../repository/parameter');
-const { getLogger } = require('../core/logging');
-const ServiceError = require('../core/serviceError');
-const { formatOutgoingParameter, formatIncomingParameter } = require('./_formats');
+const parameterRepo = require("../repository/parameter");
+const { getLogger } = require("../core/logging");
+const ServiceError = require("../core/serviceError");
 
 // -------------------
 // Logging
@@ -11,91 +10,79 @@ const debugLog = (message, meta = {}) => {
   this.logger.debug(message, meta);
 };
 
-// -------------------
-// Get all
-// -------------------
-const getAll = async () => {
-  debugLog('Fetching all parameters');
-  let parameters = await parameterRepo.findAll();
-  parameters = parameters.map(formatOutgoingParameter);
-  const count = parameters.length;
+const outgoingFormat = (object) => {
+  // Add a data & status field to the object
   return {
-    parameters,
-    count,
+    data: object,
   };
 };
 
 // -------------------
-// Get by id
+// find all
 // -------------------
-const getById = async (parameterId) => {
-  debugLog(`Fetching parameter with id ${parameterId}`);
-  const parameter = await parameterRepo.findById(parameterId);
-  return formatOutgoingParameter(parameter);
+const findAll = async () => {
+  debugLog("Received get all request for parameter");
+  return outgoingFormat(await parameterRepo.findAll());
 };
 
 // -------------------
-// Create
+// find by id
+// -------------------
+
+const findById = async (parameterId) => {
+  debugLog(`Received get by id request for parameter ${parameterId}`);
+  // Find the parameter
+  const parameter = await parameterRepo.findById(parameterId);
+  // If the parameter doesn't exist, throw a 404
+  if (!parameter) {
+    throw ServiceError.notFound(`parameter ${parameterId} not found`);
+  }
+
+  return outgoingFormat(parameter);
+};
+
+// -------------------
+// create
 // -------------------
 const create = async (parameterObject) => {
-  debugLog(`Creating new parameter with values: ${JSON.stringify(parameterObject)}`);
-  let parameter = formatIncomingParameter(parameterObject);
-  const existingParameter = await parameterRepo.findByName(parameter.name);
-  if (existingParameter) {
-    throw ServiceError.conflict('Parameter already exists');
-  } else {
-    try {
-      const parameterId = await parameterRepo.create(parameter);
-      return getById(parameterId);
-    } catch (err) {
-      const logger = getLogger();
-      logger.error('Could not create parameter', err);
-      throw ServiceError.internal('Could not create parameter');
-    }
-  }
+  debugLog(`Received create request for parameter ${parameterObject.name}`);
+  return findById(await parameterRepo.create(parameterObject));
 };
 
 // -------------------
-// Update
+// update
 // -------------------
-const updateById = async (parameterId, parameterObject) => {
-  debugLog(`Updating parameter with id ${parameterId}, new values: ${JSON.stringify(parameterObject)}`);
-  let parameter = formatIncomingParameter(parameterObject);
-  let foundParameter = await parameterRepo.findById(parameterId);
-  if (!foundParameter) {
-    throw ServiceError.notFound(`Parameter with parameterId ${parameterId} doesn't exist.`);
+const update = async (id, parameterObject) => {
+  // Find the parameter
+  const parameter = await parameterRepo.findById(id);
+  // If the parameter doesn't exist, throw a 404
+  if (!parameter) {
+    throw ServiceError.notFound(`parameter ${id} not found`);
   }
-  const existingParameterByName = await parameterRepo.findByName(parameter.name);
-  if (existingParameterByName && existingParameterByName.parameterId !== parameterId) {
-    throw ServiceError.conflict(`Parameter with name ${parameter.name} already exists.`);
-  }
-  await parameterRepo.update(parameterId, parameter);
-  return getById(parameterId);
+  // Update the parameter
+  await parameterRepo.update(id, parameterObject);
+  return outgoingFormat(await parameterRepo.findById(id));
 };
 
 // -------------------
-// Delete
+// delete
 // -------------------
 const deleteById = async (parameterId) => {
-  debugLog(`Deleting parameter with id ${parameterId}`);
+  // Find the parameter
   const parameter = await parameterRepo.findById(parameterId);
+  // If the parameter doesn't exist, throw a 404
   if (!parameter) {
-    throw ServiceError.notFound(`Parameter with parameterId ${parameterId} doesn't exist.`);
+    throw ServiceError.notFound(`parameter ${parameterId} not found`);
   }
-  try {
-    await parameterRepo.deleteById(parameterId);
-  } catch (err) {
-    throw ServiceError.internalServerError('Could not delete parameter');
-  }
+  // Delete the parameter
+  await parameterRepo.deleteById(parameterId);
+  return;
 };
 
-// -------------------
-// Exports
-// -------------------
 module.exports = {
-  getAll,
-  getById,
+  findAll,
+  findById,
   create,
-  updateById,
+  update,
   deleteById,
 };

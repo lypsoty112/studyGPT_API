@@ -2,106 +2,108 @@ const Router = require("@koa/router");
 
 const service = require("../service/subscription");
 const validate = require("./_validation.js");
-const { idValidation, subscriptionBodyValidation } = require("./__validations");
 const secureRoute = require("../auth/jwt");
+const Joi = require("joi");
+
+// -------------------
+// Validation
+// -------------------
+
+/*subscription_id int UN AI PK 
+description text 
+price decimal(10,2) 
+title varchar(255)*/
+
+const validation = {
+  subscription_id: Joi.number().integer().positive().required(),
+  description: Joi.string().required(),
+  price: Joi.number().required(),
+  title: Joi.string().required(),
+};
 
 // -------------------
 // Get all
 // -------------------
-const getAllSubscriptions = async (ctx) => {
-  ctx.body = await service.getAll();
+const getAll = async (ctx) => {
+  ctx.body = await service.findAll();
   ctx.request.status = 200;
 };
-getAllSubscriptions.validationScheme = null;
+getAll.validationScheme = null;
 
 // -------------------
 // Get by id
 // -------------------
-const getSubscriptionById = async (ctx) => {
-  ctx.body = await service.getById(ctx.params.subscriptionId);
+const getById = async (ctx) => {
+  ctx.body = await service.findById(ctx.params.id);
   ctx.request.status = 200;
 };
-getSubscriptionById.validationScheme = {
+getById.validationScheme = {
   params: {
-    subscriptionId: idValidation,
+    id: validation.subscription_id,
   },
 };
 
 // -------------------
 // Create
 // -------------------
-const createSubscription = async (ctx) => {
-  const response = await service.create(ctx.request.body);
-  ctx.body = response;
-  ctx.status = 201;
+const create = async (ctx) => {
+  ctx.body = await service.create(ctx.request.body);
+  ctx.request.status = 201;
 };
-createSubscription.validationScheme = {
-  body: subscriptionBodyValidation,
+create.validationScheme = {
+  body: {
+    description: validation.description,
+    price: validation.price,
+    title: validation.title,
+  },
 };
 
 // -------------------
 // Update
 // -------------------
-const updateSubscription = async (ctx) => {
-  ctx.body = await service.updateById(
-    ctx.params.subscriptionId,
-    ctx.request.body
-  );
-  ctx.status = 200;
+const update = async (ctx) => {
+  ctx.body = await service.update(ctx.params.id, ctx.request.body);
+  ctx.request.status = 200;
 };
-updateSubscription.validationScheme = {
+update.validationScheme = {
   params: {
-    subscriptionId: idValidation,
+    id: validation.subscription_id,
   },
-  body: subscriptionBodyValidation,
+  body: {
+    description: validation.description,
+    price: validation.price,
+    title: validation.title,
+  },
 };
 
 // -------------------
 // Delete
 // -------------------
-const deleteSubscription = async (ctx) => {
-  await service.deleteById(ctx.params.subscriptionId);
-  ctx.status = 204;
+const deleteById = async (ctx) => {
+  ctx.body = await service.remove(ctx.params.id);
+  ctx.request.status = 200;
 };
-deleteSubscription.validationScheme = {
+deleteById.validationScheme = {
   params: {
-    subscriptionId: idValidation,
+    id: validation.subscription_id,
   },
 };
 
 // -------------------
-// Exports
+// Router
 // -------------------
 module.exports = (app) => {
   const router = new Router({ prefix: "/subscription" });
 
-  router.get(
-    "/",
-    validate(getAllSubscriptions.validationScheme),
-    getAllSubscriptions
-  );
-  router.get(
-    "/:subscriptionId",
-    validate(getSubscriptionById.validationScheme),
-    getSubscriptionById
-  );
-  router.post(
-    "/",
-    secureRoute,
-    validate(createSubscription.validationScheme),
-    createSubscription
-  );
-  router.put(
-    "/:subscriptionId",
-    secureRoute,
-    validate(updateSubscription.validationScheme),
-    updateSubscription
-  );
+  router.get("/", validate(getAll.validationScheme), getAll);
+  router.get("/:id", validate(getById.validationScheme), getById);
+  router.post("/", secureRoute, validate(create.validationScheme), create);
+  router.put("/:id", secureRoute, validate(update.validationScheme), update);
   router.delete(
-    "/:subscriptionId",
+    "/:id",
     secureRoute,
-    validate(deleteSubscription.validationScheme),
-    deleteSubscription
+    validate(deleteById.validationScheme),
+    deleteById
   );
 
   app.use(router.routes()).use(router.allowedMethods());

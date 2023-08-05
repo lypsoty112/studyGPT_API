@@ -1,16 +1,14 @@
 // File that contains the authentication logic
 
 // UserService
-const { getByEmail } = require("../service/user");
 const { getLogger } = require("../core/logging");
 const ServiceError = require("../core/serviceError");
 const jwt = require("jsonwebtoken");
 
 const config = require("config");
+const { findByEmail } = require("../repository/user");
 const JWT_SECRET = config.get("jwt.secret");
 const JWT_EXPIRES_IN = config.get("jwt.expiresIn");
-
-const { formatIncomingUser } = require("../service/_formats");
 
 // TODO: implement token expiration
 
@@ -39,9 +37,9 @@ const createToken = (user) => {
 module.exports = async function (userObject) {
   // Check the password
   debugLog(`Authenticating user: ${JSON.stringify(userObject)}`);
-  let user = formatIncomingUser(userObject);
+  let user = userObject;
   // Check if  the user exists
-  let userFound = await getByEmail(user.email);
+  let userFound = await findByEmail(user.email);
   if (!userFound) {
     throw new ServiceError("Mail not found", 401);
   }

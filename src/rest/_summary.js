@@ -4,82 +4,144 @@ const multer = require("@koa/multer");
 
 const service = require("../service/summary");
 const validate = require("./_validation.js");
-const { idValidation, summaryBodyValidation } = require("./__validations");
 const secureRoute = require("../auth/jwt");
 
 const config = require("config");
 const fileSizeLimit = config.get("upload.fileSizeLimit");
 
 // -------------------
+// Validation
+// -------------------
+/* 
+summary_id int UN AI PK 
+content text 
+date_created datetime 
+date_modified datetime 
+description text 
+title varchar(255) 
+user_id int UN
+*/
+
+const validation = {
+  summary_id: Joi.number().integer().positive().required(),
+  content: Joi.string().required(),
+  date_created: Joi.date().required(),
+  date_modified: Joi.date().required(),
+  description: Joi.string().required(),
+  title: Joi.string().required(),
+  user_id: Joi.number().integer().positive().required(),
+};
+
+const upload = multer({
+  storage: multer.diskStorage({
+    destination: function (req, file, cb) {
+      cb(null, "data/uploads");
+    },
+  }),
+  limits: {
+    fileSize: fileSizeLimit,
+  },
+});
+
+// -------------------
 // Get all
 // -------------------
-const getSummaries = async (ctx) => {
-  ctx.body = await service.getAll();
+const getAll = async (ctx) => {
+  ctx.body = await service.findAll();
   ctx.request.status = 200;
 };
-getSummaries.validationScheme = null;
+getAll.validationScheme = null;
 
 // -------------------
 // Get by id
 // -------------------
-const getSummaryById = async (ctx) => {
-  ctx.body = await service.getById(ctx.params.summaryId);
+const getById = async (ctx) => {
+  ctx.body = await service.findById(ctx.params.id);
   ctx.request.status = 200;
 };
-getSummaryById.validationScheme = {
+getById.validationScheme = {
   params: {
-    summaryId: idValidation,
+    id: validation.summary_id,
   },
 };
 
 // -------------------
-// create summary
+// Create
 // -------------------
-// ToDo: update this route
-const createSummary = async (ctx) => {
-  const response = await service.create(ctx.request.file);
-  ctx.body = response;
-  ctx.status = 501;
+const create = async (ctx) => {
+  ctx.body = await service.create(ctx.request.body);
+  ctx.request.status = 201;
 };
-createSummary.validationScheme = null;
-
-// -------------------
-// post summary
-// -------------------
-const postSummary = async (ctx) => {
-  const response = await service.post(ctx.request.body);
-  ctx.body = response;
-  ctx.status = 201;
-};
-postSummary.validationScheme = {
-  body: summaryBodyValidation,
-};
-
-// -------------------
-// update summary
-// -------------------
-const updateSummary = async (ctx) => {
-  ctx.body = await service.updateById(ctx.params.summaryId, ctx.request.body);
-  ctx.status = 200;
-};
-updateSummary.validationScheme = {
-  params: {
-    summaryId: idValidation,
+create.validationScheme = {
+  body: {
+    content: validation.content,
+    date_created: validation.date_created,
+    date_modified: validation.date_modified,
+    description: validation.description,
+    title: validation.title,
+    user_id: validation.user_id,
   },
-  body: summaryBodyValidation,
 };
 
 // -------------------
-// delete summary
+// Update
 // -------------------
-const deleteSummary = async (ctx) => {
-  await service.deleteById(ctx.params.summaryId);
-  ctx.status = 204;
+const update = async (ctx) => {
+  ctx.body = await service.update(ctx.params.id, ctx.request.body);
+  ctx.request.status = 200;
 };
-
-deleteSummary.validationScheme = {
+update.validationScheme = {
   params: {
-    summaryId: idValidation,
+    id: validation.summary_id,
+  },
+  body: {
+    content: validation.content,
+    date_created: validation.date_created,
+    date_modified: validation.date_modified,
+    description: validation.description,
+    title: validation.title,
+    user_id: validation.user_id,
+  },
+};
+
+// -------------------
+// Delete
+// -------------------
+const deleteById = async (ctx) => {
+  ctx.body = await service.deleteById(ctx.params.id);
+  ctx.request.status = 200;
+};
+deleteById.validationScheme = {
+  params: {
+    id: validation.summary_id,
+  },
+};
+
+// -------------------
+// New summary
+// -------------------
+const newSummary = async (ctx) => {
+  ctx.body = await service.newSummary(ctx.request.body, ctx.file);
+  ctx.request.status = 201;
+};
+newSummary.validationScheme = {
+  body: {
+    description: validation.description,
+    title: validation.title,
+    user_id: validation.user_id,
+  },
+};
+
+// -------------------
+// find by user id
+// -------------------
+const getByUserId = async (ctx) => {
+  ctx.body = await service.findByUserId(ctx.params.id);
+  ctx.request.status = 200;
+};
+getByUserId.validationScheme = {
+  params: {
+    id: validation.user_id,
   },
 };
 
@@ -89,48 +151,28 @@ deleteSummary.validationScheme = {
 
 module.exports = (app) => {
   const router = new Router({ prefix: "/summary" });
-  const upload = multer({
-    storage: multer.diskStorage({
-      destination: function (req, file, cb) {
-        cb(null, "data/uploads");
-      },
-    }),
-    limits: {
-      fileSize: fileSizeLimit,
-    },
-  });
-  router.get("/", secureRoute, getSummaries);
-  router.get(
-    "/:summaryId",
+  router.get("/", secureRoute, getAll);
+  router.get("/:id", secureRoute, validate(getById.validationScheme), getById);
+  router.post("/", secureRoute, validate(create.validationScheme), create);
+  router.put("/:id", secureRoute, validate(update.validationScheme), update);
+  router.delete(
+    "/:id",
     secureRoute,
-    validate(getSummaryById.validationScheme),
-    getSummaryById
+    validate(deleteById.validationScheme),
+    deleteById
   );
   router.post(
-    "/create",
+    "/new",
     secureRoute,
     upload.single("file"),
-    validate(createSummary.validationScheme),
-    createSummary
+    validate(newSummary.validationScheme),
+    newSummary
   );
-  router.post(
-    "/",
+  router.get(
+    "/user/:id",
     secureRoute,
-    validate(postSummary.validationScheme),
-    postSummary
+    validate(getByUserId.validationScheme),
+    getByUserId
   );
-  router.put(
-    "/:summaryId",
-    secureRoute,
-    validate(updateSummary.validationScheme),
-    updateSummary
-  );
-  router.delete(
-    "/:summaryId",
-    secureRoute,
-    validate(deleteSummary.validationScheme),
-    deleteSummary
-  );
-
   app.use(router.routes()).use(router.allowedMethods());
 };

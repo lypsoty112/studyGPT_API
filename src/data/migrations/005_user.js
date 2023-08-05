@@ -6,8 +6,8 @@ exports.up = function (knex) {
     table.dateTime("date_created");
     table.string("email", 255).unique();
     table.string("password", 255);
-    table.integer("role_id").unsigned();
-    table.integer("subscription_id").unsigned();
+    table.integer("role_id").unsigned().defaultTo(1);
+    table.integer("subscription_id").unsigned().defaultTo(3);
     table.foreign("role_id").references("Role.role_id");
     table
       .foreign("subscription_id")

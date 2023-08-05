@@ -1,7 +1,6 @@
-const subscriptionRepo = require('../repository/subscription');
-const { getLogger } = require('../core/logging');
-const ServiceError = require('../core/serviceError');
-const { formatOutgoingSubscription, formatIncomingSubscription } = require('./_formats');
+const subscriptionRepo = require("../repository/subscription");
+const { getLogger } = require("../core/logging");
+const ServiceError = require("../core/serviceError");
 
 // -------------------
 // Logging
@@ -11,83 +10,88 @@ const debugLog = (message, meta = {}) => {
   if (!this.logger) this.logger = getLogger();
   this.logger.debug(message, meta);
 };
-
-// -------------------
-// Get all
-// -------------------
-const getAll = async () => {
-  debugLog('Fetching all subscriptions');
-  let subscriptions = await subscriptionRepo.findAll();
-  subscriptions = subscriptions.map(formatOutgoingSubscription);
-  const count = subscriptions.length;
+const outgoingFormat = (object) => {
+  // Add a data & status field to the object
   return {
-    subscriptions,
-    count,
+    data: object,
   };
 };
 
 // -------------------
-// Get by id
+// find all
 // -------------------
-const getById = async (subscriptionId) => {
-  debugLog(`Fetching subscription with id ${subscriptionId}`);
-  const subscription = await subscriptionRepo.findById(subscriptionId);
-  return formatOutgoingSubscription(subscription);
+const findAll = async () => {
+  debugLog("Received get all request for subscription");
+  return outgoingFormat(await subscriptionRepo.findAll());
 };
 
 // -------------------
-// Create
+// find by id
+// -------------------
+const findById = async (subscriptionId) => {
+  debugLog(`Received get by id request for subscription ${subscriptionId}`);
+  // Find the subscription
+  let subscriptionFound = await subscriptionRepo.findById(subscriptionId);
+  // If the subscription doesn't exist, throw a 404
+  if (!subscriptionFound) {
+    throw ServiceError.notFound(`subscription ${subscriptionId} not found`);
+  }
+  return outgoingFormat(subscriptionFound);
+};
+
+// -------------------
+// create
 // -------------------
 const create = async (subscriptionObject) => {
-  debugLog(`Creating new subscription: ${JSON.stringify(subscriptionObject)}`);
-  let subscription = formatIncomingSubscription(subscriptionObject);
-  try {
-    const subscriptionId = await subscriptionRepo.create(subscription);
-    return getById(subscriptionId);
-  } catch (err) {
-    const logger = getLogger();
-    logger.error('Could not create subscription', err);
-    throw ServiceError.internalServerError('Could not create subscription');
-  }
+  debugLog(
+    `Received create request for subscription ${JSON.stringify(
+      subscriptionObject
+    )}`
+  );
+  return findById(await subscriptionRepo.create(subscriptionObject));
 };
 
 // -------------------
-// Update
+// update
 // -------------------
-const updateById = async (subscriptionId, subscriptionObject) => {
-  debugLog(`Updating subscription with id ${subscriptionId}, new values: ${JSON.stringify(subscriptionObject)}`);
-  let subscription = formatIncomingSubscription(subscriptionObject);
-  const existingSubscription = await subscriptionRepo.findById(subscriptionId);
-  if (!existingSubscription) {
-    throw ServiceError.notFound(`Subscription with subscriptionId ${subscriptionId} doesn't exist.`);
+const update = async (subscription_id, subscriptionObject) => {
+  debugLog(
+    `Received update request for subscription ${JSON.stringify(
+      subscriptionObject
+    )}`
+  );
+
+  // Find the subscription
+  let subscriptionFound = await subscriptionRepo.findById(subscription_id);
+  // If the subscription doesn't exist, throw a 404
+  if (!subscriptionFound) {
+    throw ServiceError.notFound(`subscription ${subscription_id} not found`);
   }
-  await subscriptionRepo.update(subscriptionId, subscription);
-  return getById(subscriptionId);
+  // Update the subscription
+  await subscriptionRepo.update(subscription_id, subscriptionObject);
+  return findById(subscription_id);
 };
 
 // -------------------
-// Delete
+// delete
 // -------------------
-const deleteById = async (subscriptionId) => {
-  debugLog(`Deleting subscription with id ${subscriptionId}`);
-  const existingSubscription = await subscriptionRepo.findById(subscriptionId);
-  if (!existingSubscription) {
-    throw ServiceError.notFound(`Subscription with subscriptionId ${subscriptionId} doesn't exist.`);
+const remove = async (subscriptionId) => {
+  debugLog(`Received delete request for subscription ${subscriptionId}`);
+  // Find the subscription
+  let subscriptionFound = await subscriptionRepo.findById(subscriptionId);
+  // If the subscription doesn't exist, throw a 404
+  if (!subscriptionFound) {
+    throw ServiceError.notFound(`subscription ${subscriptionId} not found`);
   }
-  try {
-    await subscriptionRepo.deleteById(subscriptionId);
-  } catch (err) {
-    throw ServiceError.internalServerError('Could not delete subscription');
-  }
+  // Delete the subscription
+  await subscriptionRepo.deleteById(subscriptionId);
+  return;
 };
 
-// -------------------
-// Exports
-// -------------------
 module.exports = {
-  getAll,
-  getById,
+  findAll,
+  findById,
   create,
-  updateById,
-  deleteById,
+  update,
+  remove,
 };

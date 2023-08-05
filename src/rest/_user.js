@@ -4,135 +4,166 @@ const service = require("../service/user");
 const validate = require("./_validation.js");
 const authenticate = require("../auth/authenticate");
 const secureRoute = require("../auth/jwt");
-const {
-  idValidation,
-  userBodyValidation,
-  loginBodyValidation,
-} = require("./__validations");
+const { getLogger } = require("../core/logging");
+const Joi = require("joi");
+
+// -------------------
+// Validation
+// -------------------
+/* 
+user_id int UN AI PK 
+date_created datetime 
+email varchar(255) 
+password varchar(255) 
+role_id int UN 
+subscription_id int UN
+*/
+
+const validation = {
+  user_id: Joi.number().integer().positive().required(),
+  date_created: Joi.date().required(),
+  email: Joi.string().required(),
+  password: Joi.string().required(),
+  role_id: Joi.number().integer().positive().required(),
+  subscription_id: Joi.number().integer().positive().required(),
+};
 
 // -------------------
 // Get all
 // -------------------
-const getAllUsers = async (ctx) => {
-  ctx.body = await service.getAll();
+const getAll = async (ctx) => {
+  ctx.body = await service.findAll();
   ctx.request.status = 200;
 };
-getAllUsers.validationScheme = null;
+getAll.validationScheme = null;
 
 // -------------------
 // Get by id
 // -------------------
-const getUserById = async (ctx) => {
-  ctx.body = await service.getById(ctx.params.userId);
+const getById = async (ctx) => {
+  ctx.body = await service.findById(ctx.params.id);
   ctx.request.status = 200;
 };
-getUserById.validationScheme = {
+getById.validationScheme = {
   params: {
-    userId: idValidation,
+    id: validation.user_id,
   },
 };
 
 // -------------------
-// create user
+// Create
 // -------------------
-const createUser = async (ctx) => {
-  const response = await service.create(ctx.request.body);
-  ctx.body = response;
-  ctx.status = 201;
+const create = async (ctx) => {
+  ctx.body = await service.create(ctx.request.body);
+  ctx.request.status = 201;
 };
-createUser.validationScheme = {
-  body: userBodyValidation,
+create.validationScheme = {
+  body: {
+    date_created: validation.date_created,
+    email: validation.email,
+    password: validation.password,
+    role_id: validation.role_id,
+    subscription_id: validation.subscription_id,
+  },
+};
+
+// -------------------
+// Update
+// -------------------
+const update = async (ctx) => {
+  ctx.body = await service.update(ctx.params.id, ctx.request.body);
+  ctx.request.status = 200;
+};
+update.validationScheme = {
+  params: {
+    id: validation.user_id,
+  },
+  body: {
+    date_created: validation.date_created,
+    email: validation.email,
+    password: validation.password,
+    role_id: validation.role_id,
+    subscription_id: validation.subscription_id,
+  },
+};
+
+// -------------------
+// Delete
+// -------------------
+const deleteById = async (ctx) => {
+  ctx.body = await service.deleteById(ctx.params.id);
+  ctx.request.status = 200;
+};
+deleteById.validationScheme = {
+  params: {
+    id: validation.user_id,
+  },
+};
+
+// -------------------
+// Find by email
+// -------------------
+const getByEmail = async (ctx) => {
+  ctx.body = await service.findByEmail(ctx.params.email);
+  ctx.request.status = 200;
+};
+getByEmail.validationScheme = {
+  params: {
+    email: validation.email,
+  },
 };
 
 // -------------------
 // Log in
 // -------------------
 const logIn = async (ctx) => {
-  const response = await authenticate(ctx.request.body);
-  ctx.body = response;
-  ctx.status = 200;
+  ctx.body = await authenticate(ctx.request.body);
+  ctx.request.status = 200;
 };
 logIn.validationScheme = {
-  body: loginBodyValidation,
+  body: {
+    email: validation.email,
+    password: validation.password,
+  },
 };
 
 // -------------------
 // Register
 // -------------------
 const register = async (ctx) => {
-  // TODO: implement register
-  ctx.body = "register";
-  ctx.status = 200;
+  // Register the user
+  await service.register(ctx.request.body.email, ctx.request.body.password);
+  // Authenticate the user
+  ctx.body = await authenticate(ctx.request.body);
+  ctx.request.status = 501;
 };
 register.validationScheme = {
-  body: loginBodyValidation,
-};
-
-// -------------------
-// update user
-// -------------------
-const updateUser = async (ctx) => {
-  ctx.body = await service.updateById(ctx.params.userId, ctx.request.body);
-  ctx.status = 200;
-};
-updateUser.validationScheme = {
-  params: {
-    userId: idValidation,
-  },
-  body: userBodyValidation,
-};
-
-// -------------------
-// Delete
-// -------------------
-const deleteUser = async (ctx) => {
-  await service.deleteById(ctx.params.userId);
-  ctx.status = 204;
-};
-deleteUser.validationScheme = {
-  params: {
-    userId: idValidation,
+  body: {
+    email: validation.email,
+    password: validation.password,
   },
 };
 
-// -------------------
 // Exports
-// -------------------
 module.exports = (app) => {
   const router = new Router({ prefix: "/user" });
-
+  router.get("/", secureRoute, getAll);
+  router.get("/:id", secureRoute, validate(getById.validationScheme), getById);
+  router.post("/", secureRoute, validate(create.validationScheme), create);
+  router.put("/:id", secureRoute, validate(update.validationScheme), update);
   router.get(
-    "/",
+    "/email/:email",
     secureRoute,
-    validate(getAllUsers.validationScheme),
-    getAllUsers
+    validate(getByEmail.validationScheme),
+    getByEmail
   );
-  router.get(
-    "/:userId",
+  router.delete(
+    "/:id",
     secureRoute,
-    validate(getUserById.validationScheme),
-    getUserById
-  );
-  router.post(
-    "/",
-    secureRoute,
-    validate(createUser.validationScheme),
-    createUser
+    validate(deleteById.validationScheme),
+    deleteById
   );
   router.post("/login", validate(logIn.validationScheme), logIn);
   router.post("/register", validate(register.validationScheme), register);
-  router.put(
-    "/:userId",
-    secureRoute,
-    validate(updateUser.validationScheme),
-    updateUser
-  );
-  router.delete(
-    "/:userId",
-    secureRoute,
-    validate(deleteUser.validationScheme),
-    deleteUser
-  );
-
   app.use(router.routes()).use(router.allowedMethods());
 };

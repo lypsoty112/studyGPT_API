@@ -1,10 +1,9 @@
-const summaryRepo = require('../repository/summary');
-const { getLogger } = require('../core/logging');
-const ServiceError = require('../core/serviceError');
-const { spawn } = require('child_process');
-const { formatOutgoingSummary, formatIncomingSummary, formatIncomingFile } = require('./_formats');
-const config = require('config');
-const pythonPath = config.get('process.path');
+const summaryRepo = require("../repository/summary");
+const { getLogger } = require("../core/logging");
+const ServiceError = require("../core/serviceError");
+const { spawn } = require("child_process");
+const config = require("config");
+const pythonPath = config.get("process.path");
 
 // -------------------
 // Logging
@@ -14,109 +13,125 @@ const debugLog = (message, meta = {}) => {
   this.logger.debug(message, meta);
 };
 
-// -------------------
-// Get all
-// -------------------
-const getAll = async () => {
-  debugLog('Fetching all summaries');
-  let summaries = await summaryRepo.findAll();
-  summaries = summaries.map(formatOutgoingSummary);
-  const count = summaries.length;
+const outgoingFormat = (object) => {
+  // Add a data & status field to the object
   return {
-    summaries,
-    count,
+    data: object,
   };
 };
-
 // -------------------
-// Get by id
+// find all
 // -------------------
-const getById = async (summaryId) => {
-  debugLog(`Fetching summary with id ${summaryId}`);
-  const summary = await summaryRepo.findById(summaryId);
-  return formatOutgoingSummary(summary);
+const findAll = async () => {
+  debugLog("Received get all request for summary");
+  return outgoingFormat(await summaryRepo.findAll());
 };
 
 // -------------------
-// Create
+// find by id
 // -------------------
-const create = async (fileObject) => {
-  const file = formatIncomingFile(fileObject);
-  debugLog(`Creating new summary based on ${JSON.stringify(file.name)}`);
-  // TODO: Create this function
+const findById = async (summaryId) => {
+  debugLog(`Received get by id request for summary ${summaryId}`);
+  // Find the summary
+  let summaryFound = await summaryRepo.findById(summaryId);
+  // If the summary doesn't exist, throw a 404
+  if (!summaryFound) {
+    throw ServiceError.notFound(`summary ${summaryId} not found`);
+  }
+  return outgoingFormat(summaryFound);
+};
+
+// -------------------
+// create
+// -------------------
+const create = async (summaryObject) => {
+  debugLog(
+    `Received create request for summary ${JSON.stringify(summaryObject)}`
+  );
+  return findById(await summaryRepo.create(summaryObject));
+};
+
+// -------------------
+// update
+// -------------------
+const update = async (summary_id, summaryObject) => {
+  // Find the summary
+  findById(summary_id);
+  // Update the summary
+  await summaryRepo.update(summary_id, summaryObject);
+  // Return the updated summary
+  return findById(summary_id);
+};
+
+// -------------------
+// delete
+// -------------------
+const deleteById = async (summaryId) => {
+  // Find the summary
+  findById(summaryId);
+  // Delete the summary
+  await summaryRepo.deleteById(summaryId);
+  return;
+};
+
+// -------------------
+// newSummary
+// -------------------
+const newSummary = async (incomingObject, file) => {
+  // TODO: implement newSummary for summary service
+  // Create the summary
+  debugLog(`Creating new summary based on ${JSON.stringify(file)}`);
   // Call the python script
-  
-  const pythonProcess = spawn('python', [pythonPath, file.path, file.encoding, file.mimetype, file.name, file.size]);
+  /*
+  const pythonProcess = spawn("python", [
+    pythonPath,
+    file.path,
+    file.encoding,
+    file.mimetype,
+    file.name,
+    file.size,
+  ]);
   // Handle the output/error events of the Python process
-  pythonProcess.stdout.on('data', (data) => {
+  pythonProcess.stdout.on("data", (data) => {
     // Handle the output from the Python script
     console.log(`Python script output: ${data}`);
   });
 
-  pythonProcess.stderr.on('data', (data) => {
+  pythonProcess.stderr.on("data", (data) => {
     // Handle any error output from the Python script
     console.error(`Error from Python script: ${data}`);
   });
 
   // Wait for the Python process to exit
   await new Promise((resolve) => {
-    pythonProcess.on('close', (code) => {
+    pythonProcess.on("close", (code) => {
       console.log(`Python script exited with code ${code}`);
       resolve();
     });
   });
-  return file;
+  */
+  // Return the summary
+  return findById(1);
 };
 
 // -------------------
-// Post
+// Find by user id
 // -------------------
-const post = async (summaryObject) => {
-  let summary = formatIncomingSummary(summaryObject);
-  debugLog(`Posting new summary with title: ${summary.name}`);
-  const summaryId = await summaryRepo.create(summary);
-  return getById(summaryId);
+const findByUserId = async (userId) => {
+  debugLog(`Received get by user id request for id ${userId}`);
+  return outgoingFormat(await summaryRepo.findByUserId(userId));
 };
 
 // -------------------
-// Update by id
+// exports
 // -------------------
-const updateById = async (summaryId, summaryObject) => {
-  debugLog(`Updating summary with id ${summaryId}, new: ${JSON.stringify(summaryObject)}`);
-  let summary = formatIncomingSummary(summaryObject);
-  const existingSummary = await summaryRepo.findById(summaryId);
-  if (!existingSummary) {
-    throw ServiceError.notFound(`Summary with summaryId ${summaryId} doesn't exist.`);
-  }
-  await summaryRepo.update(summaryId, summary);
-  return getById(summaryId);
-};
 
-// -------------------
-// Delete by id
-// -------------------
-const deleteById = async (summaryId) => {
-  debugLog(`Deleting summary with id ${summaryId}`);
-  const summary = await summaryRepo.findById(summaryId);
-  if (!summary) {
-    throw ServiceError.notFound(`Summary with summaryId ${summaryId} doesn't exist.`);
-  }
-  try {
-    await summaryRepo.deleteById(summaryId);
-  } catch (err) {
-    throw ServiceError.internalServerError('Could not delete summary');
-  }
-};
-
-// -------------------
-// Exports
-// -------------------
 module.exports = {
-  getAll,
-  getById,
+  findAll,
+  findById,
   create,
-  post,
-  updateById,
+  update,
   deleteById,
-  formatOutgoingSummary,
+  newSummary,
+  findByUserId,
 };

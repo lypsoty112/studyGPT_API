@@ -1,7 +1,6 @@
-const paymentRepo = require('../repository/payment');
-const { getLogger } = require('../core/logging');
-const ServiceError = require('../core/serviceError');
-const { formatOutgoingPayment, formatIncomingPayment } = require('./_formats');
+const paymentRepo = require("../repository/payment");
+const { getLogger } = require("../core/logging");
+const ServiceError = require("../core/serviceError");
 
 // -------------------
 // Logging
@@ -10,98 +9,94 @@ const debugLog = (message, meta = {}) => {
   if (!this.logger) this.logger = getLogger();
   this.logger.debug(message, meta);
 };
-
-// -------------------
-// Get all
-// -------------------
-const getAll = async () => {
-  debugLog('Fetching all payments');
-  let payments = await paymentRepo.findAll();
-  payments = payments.map(formatOutgoingPayment);
-  const count = payments.length;
+const outgoingFormat = (object) => {
+  // Add a data & status field to the object
   return {
-    payments,
-    count,
+    data: object,
   };
 };
 
 // -------------------
-// Get by id
+// find all
 // -------------------
-const getById = async (paymentId) => {
-  debugLog(`Fetching payment with id ${paymentId}`);
-  const payment = await paymentRepo.findById(paymentId);
-  return formatOutgoingPayment(payment);
+const findAll = async () => {
+  debugLog("Received get all request for payment");
+  return outgoingFormat(await paymentRepo.findAll());
 };
 
 // -------------------
-// Get by user id
+// find by id
 // -------------------
-const getByUserId = async (userId) => {
-  debugLog(`Fetching payments for user with id ${userId}`);
-  let payments = await paymentRepo.findByUserId(userId);
-  payments = payments.map(formatOutgoingPayment);
-  const count = payments.length;
-  return {
-    payments,
-    count,
-  };
+
+const findById = async (paymentId) => {
+  debugLog(`Received get by id request for payment ${paymentId}`);
+  // Find the payment
+  paymentFound = await paymentRepo.findById(paymentId);
+  // If the payment doesn't exist, throw a 404
+  if (!paymentFound) {
+    throw ServiceError.notFound(`payment ${paymentId} not found`);
+  }
+
+  return outgoingFormat(paymentFound);
 };
 
 // -------------------
-// Create
+// create
 // -------------------
 const create = async (paymentObject) => {
-  debugLog(`Creating new payment with values: ${JSON.stringify(paymentObject)}`);
-  let payment = formatIncomingPayment(paymentObject);
-  try {
-    const paymentId = await paymentRepo.create(payment);
-    return getById(paymentId);
-  } catch (err) {
-    const logger = getLogger();
-    logger.error('Could not create payment', err);
-    throw ServiceError.internalServerError('Could not create payment');
-  }
-};
-
-// -------------------
-// Update by id
-// -------------------
-const updateById = async (paymentId, paymentObject) => {
-
   debugLog(
-    `Updating payment with id ${paymentId}, new values: ${JSON.stringify(paymentObject)}`
+    `Received create request for payment ${JSON.stringify(paymentObject)}`
   );
-  let payment = formatIncomingPayment(paymentObject);
-  const foundPayment = await paymentRepo.findById(paymentId);
-  if (!foundPayment) {
-    throw ServiceError.notFound(`Payment with paymentId ${paymentId} doesn't exist.`);
-  }
-  await paymentRepo.update(paymentId, payment);
-  return getById(paymentId);
+  await paymentRepo.create(paymentObject);
+  return findById(paymentObject.payment_id);
 };
 
 // -------------------
-// Delete by id
+// update
+// -------------------
+const update = async (id, paymentObject) => {
+  debugLog(
+    `Received update request for payment ${JSON.stringify(paymentObject)}`
+  );
+  // Find the payment
+  let paymentFound = await paymentRepo.findById(id);
+  // If the payment doesn't exist, throw a 404
+  if (!paymentFound) {
+    throw ServiceError.notFound(`payment ${id} not found`);
+  }
+  // Update the payment
+  await paymentRepo.update(id, paymentObject);
+  return findById(id);
+};
+
+// -------------------
+// delete
 // -------------------
 const deleteById = async (paymentId) => {
-  debugLog(`Deleting payment with id ${paymentId}`);
-  const payment = await paymentRepo.findById(paymentId);
-  if (!payment) {
-    throw ServiceError.notFound(`Payment with paymentId ${paymentId} doesn't exist.`);
+  debugLog(`Received delete request for payment ${paymentId}`);
+  // Find the payment
+  let paymentFound = await paymentRepo.findById(paymentId);
+  // If the payment doesn't exist, throw a 404
+  if (!paymentFound) {
+    throw ServiceError.notFound(`payment ${paymentId} not found`);
   }
-  try {
-    await paymentRepo.deleteById(paymentId);
-  } catch (err) {
-    throw ServiceError.internalServerError('Could not delete payment');
-  }
+  // Delete the payment
+  await paymentRepo.deleteById(paymentId);
+};
+
+// -------------------
+// find by user id
+// -------------------
+const findByUserId = async (userId) => {
+  debugLog(`Received get by user id request for payment ${userId}`);
+  return outgoingFormat(await paymentRepo.findByUserId(userId));
 };
 
 module.exports = {
-  getAll,
-  getById,
-  getByUserId,
+  findAll,
+  findById,
   create,
-  updateById,
+  update,
   deleteById,
+  findByUserId,
 };

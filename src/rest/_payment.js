@@ -2,119 +2,133 @@ const Router = require("@koa/router");
 
 const service = require("../service/payment");
 const validate = require("./_validation.js");
-const { idValidation, paymentBodyValidation } = require("./__validations");
 const secureRoute = require("../auth/jwt");
+const Joi = require("joi");
+
+// -------------------
+// Validation
+// -------------------
+
+const validation = {
+  id: Joi.string().required(),
+  amount: Joi.number().required(),
+  currency: Joi.string().required(),
+  payment_date: Joi.date().required(),
+  payment_status: Joi.string().required(),
+  subscription_id: Joi.number().integer().positive().required(),
+  user_id: Joi.number().integer().positive().required(),
+};
 
 // -------------------
 // Get all
 // -------------------
-const getAllPayments = async (ctx) => {
-  ctx.body = await service.getAll();
+const getAll = async (ctx) => {
+  ctx.body = await service.findAll();
   ctx.request.status = 200;
 };
-getAllPayments.validationScheme = null;
+getAll.validationScheme = null;
 
 // -------------------
 // Get by id
 // -------------------
-const getPaymentById = async (ctx) => {
-  ctx.body = await service.getById(ctx.params.paymentId);
+const getById = async (ctx) => {
+  ctx.body = await service.findById(ctx.params.id);
   ctx.request.status = 200;
 };
-getPaymentById.validationScheme = {
+
+getById.validationScheme = {
   params: {
-    paymentId: idValidation,
+    id: validation.id,
+  },
+};
+
+// -------------------
+// Create
+// -------------------
+const create = async (ctx) => {
+  ctx.body = await service.create(ctx.request.body);
+  ctx.status = 201;
+};
+create.validationScheme = {
+  body: {
+    payment_id: validation.id,
+    amount: validation.amount,
+    currency: validation.currency,
+    payment_date: validation.payment_date,
+    payment_status: validation.payment_status,
+    subscription_id: validation.subscription_id,
+    user_id: validation.user_id,
+  },
+};
+
+// -------------------
+// Update
+// -------------------
+const update = async (ctx) => {
+  ctx.body = await service.update(ctx.params.id, ctx.request.body);
+  ctx.status = 200;
+};
+update.validationScheme = {
+  params: {
+    id: validation.id,
+  },
+  body: {
+    amount: validation.amount,
+    currency: validation.currency,
+    payment_date: validation.payment_date,
+    payment_status: validation.payment_status,
+    subscription_id: validation.subscription_id,
+    user_id: validation.user_id,
+  },
+};
+
+// -------------------
+// Delete
+// -------------------
+const deleteById = async (ctx) => {
+  ctx.body = await service.deleteById(ctx.params.id);
+  ctx.status = 204;
+};
+deleteById.validationScheme = {
+  params: {
+    id: validation.id,
   },
 };
 
 // -------------------
 // Get by user id
 // -------------------
-const getPaymentByUserId = async (ctx) => {
-  ctx.body = await service.getByUserId(ctx.params.userId);
+const getByUserId = async (ctx) => {
+  ctx.body = await service.findByUserId(ctx.params.id);
   ctx.request.status = 200;
 };
-getPaymentByUserId.validationScheme = {
+getByUserId.validationScheme = {
   params: {
-    userId: idValidation,
+    id: validation.user_id,
   },
 };
 
 // -------------------
-// create payment
-// -------------------
-const createPayment = async (ctx) => {
-  const response = await service.create(ctx.request.body);
-  ctx.body = response;
-  ctx.status = 201;
-};
-createPayment.validationScheme = {
-  body: paymentBodyValidation,
-};
-
-// -------------------
-// update payment
-// -------------------
-const updatePayment = async (ctx) => {
-  ctx.body = await service.updateById(ctx.params.paymentId, ctx.request.body);
-  ctx.status = 200;
-};
-updatePayment.validationScheme = {
-  params: {
-    paymentId: idValidation,
-  },
-  body: paymentBodyValidation,
-};
-
-// -------------------
-// delete payment
-// -------------------
-const deletePayment = async (ctx) => {
-  await service.deleteById(ctx.params.paymentId);
-  ctx.status = 204;
-};
-deletePayment.validationScheme = {
-  params: {
-    paymentId: idValidation,
-  },
-};
-
-// -------------------
-// Exports
+// Routes
 // -------------------
 module.exports = (app) => {
   const router = new Router({ prefix: "/payment" });
 
-  router.get(
-    "/",
-    secureRoute,
-    validate(getAllPayments.validationScheme),
-    getAllPayments
-  );
-  router.get(
-    "/:paymentId",
-    secureRoute,
-    validate(getPaymentById.validationScheme),
-    getPaymentById
-  );
-  router.get(
-    "/user/:userId",
-    secureRoute,
-    validate(getPaymentByUserId.validationScheme),
-    getPaymentByUserId
-  );
-  router.post("/", validate(createPayment.validationScheme), createPayment);
-  router.put(
-    "/:paymentId",
-    secureRoute,
-    validate(updatePayment.validationScheme),
-    updatePayment
-  );
+  router.get("/", secureRoute, validate(getAll.validationScheme), getAll);
+  router.get("/:id", secureRoute, validate(getById.validationScheme), getById);
+  router.post("/", secureRoute, validate(create.validationScheme), create);
+  router.put("/:id", secureRoute, validate(update.validationScheme), update);
   router.delete(
-    "/:paymentId",
+    "/:id",
     secureRoute,
-    validate(deletePayment.validationScheme),
-    deletePayment
+    validate(deleteById.validationScheme),
+    deleteById
+  );
+  router.get(
+    "/user/:id",
+    secureRoute,
+    validate(getByUserId.validationScheme),
+    getByUserId
   );
 
   app.use(router.routes()).use(router.allowedMethods());

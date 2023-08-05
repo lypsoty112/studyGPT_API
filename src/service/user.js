@@ -1,8 +1,6 @@
 const userRepo = require("../repository/user");
 const { getLogger } = require("../core/logging");
 const ServiceError = require("../core/serviceError");
-const { formatOutgoingUser, formatIncomingUser } = require("./_formats");
-
 /*
   return {
     subscription_id: user.subscriptionId,
@@ -11,6 +9,25 @@ const { formatOutgoingUser, formatIncomingUser } = require("./_formats");
     registration_date: user.registrationDate,
   };*/
 
+const outgoingFormat = (object) => {
+  // Add a data & status field to the object
+  // Remove the password
+  // Check if object is a list or a single object
+  if (Array.isArray(object)) {
+    // If it's a list, map each object
+    object = object.map((user) => {
+      delete user.password;
+      return user;
+    });
+  } else {
+    // If it's a single object, simply remove the password
+    delete object.password;
+  }
+
+  return {
+    data: object,
+  };
+};
 // -------------------
 // Logging
 // -------------------
@@ -20,102 +37,108 @@ const debugLog = (message, meta = {}) => {
 };
 
 // -------------------
-// Get all
+// find all
 // -------------------
-const getAll = async () => {
-  debugLog("Fetching all users");
-  let users = await userRepo.findAll();
-  users = users.map(formatOutgoingUser);
-  const count = users.length;
-  return {
-    users,
-    count,
-  };
+const findAll = async () => {
+  debugLog("Received get all request for user");
+  return outgoingFormat(await userRepo.findAll());
 };
 
 // -------------------
-// Get by id
+// find by id
 // -------------------
-const getById = async (userId) => {
-  debugLog(`Fetching user with id ${userId}`);
-  const user = await userRepo.findById(userId);
-  return formatOutgoingUser(user);
+const findById = async (userId) => {
+  debugLog(`Received get by id request for user ${userId}`);
+  // Find the user
+  let userFound = await userRepo.findById(userId);
+  // If the user doesn't exist, throw a 404
+  if (!userFound) {
+    throw ServiceError.notFound(`user ${userId} not found`);
+  }
+  return outgoingFormat(userFound);
 };
 
 // -------------------
-// Get by email
-// -------------------
-const getByEmail = async (email) => {
-  debugLog(`Fetching user with email ${email}`);
-  const user = await userRepo.findByEmail(email);
-  return formatOutgoingUser(user);
-};
-
-// -------------------
-// Create
+// create
 // -------------------
 const create = async (userObject) => {
-  debugLog(`Creating new user: ${JSON.stringify(userObject)}`);
-  let user = formatIncomingUser(userObject);
-  if (await userRepo.findByEmail(user.email)) {
-    throw ServiceError.conflict("User already exists");
-  } else {
-    try {
-      const userId = await userRepo.create(user);
-      return getById(userId);
-    } catch (err) {
-      const logger = getLogger();
-      logger.error("Could not create user", err);
-      throw ServiceError.internalServerError("Could not create user");
-    }
+  debugLog(`Received create request for user ${userObject.email}`);
+  // Check if the user already exists
+  let userFound = await userRepo.findByEmail(userObject.email);
+  // If the user already exists, throw a 409
+  if (userFound) {
+    throw ServiceError.conflict(`user ${userObject.email} already exists`);
   }
-};
-// -------------------
-// Update
-// -------------------
-const updateById = async (userId, userObject) => {
-  debugLog(
-    `Updating user with id ${userId}, new ${JSON.stringify(userObject)}`
-  );
-  let user = formatIncomingUser(userObject);
-  const existingUser = await userRepo.findById(userId);
-  if (!existingUser) {
-    throw ServiceError.notFound(`User with userId ${userId} doesn't exist.`);
-  }
-  const existingUserByEmail = await userRepo.findByEmail(user.email);
-  if (existingUserByEmail && existingUserByEmail.userId !== userId) {
-    throw ServiceError.conflict(
-      `User with email ${user.email} already exists.`
-    );
-  }
-  await userRepo.update(userId, user);
-  return getById(userId);
+  // Create the user
+  return findById(await userRepo.create(userObject));
 };
 
 // -------------------
-// Delete
+// update
+// -------------------
+const update = async (id, userObject) => {
+  debugLog(`Received update request for user ${id}`);
+  // Find the user
+  findById(id);
+  //  Check if the user already exists
+  let userFound = await userRepo.findByEmail(userObject.email);
+  // If the user already exists, throw a 409
+  if (userFound) {
+    throw ServiceError.conflict(`user ${userObject.email} already exists`);
+  }
+  // Update the user
+  await userRepo.update(id, userObject);
+  return findById(id);
+};
+
+// -------------------
+// delete
 // -------------------
 const deleteById = async (userId) => {
-  debugLog(`Deleting user with id ${userId}`);
-  const user = await userRepo.findById(userId);
-  if (!user) {
-    throw ServiceError.notFound(`User with userId ${userId} doesn't exist.`);
-  }
-  try {
-    await userRepo.deleteById(userId);
-  } catch (err) {
-    throw ServiceError.internalServerError("Could not delete user");
-  }
+  debugLog(`Received delete request for user ${userId}`);
+  // Find the user
+  findById(userId);
+  // Delete the user
+  await userRepo.deleteById(userId);
+  return;
 };
 
 // -------------------
-// Exports
+// find by email
+// -------------------
+const findByEmail = async (email) => {
+  debugLog(`Received get by email request for user ${email}`);
+  // Find the user
+  let userFound = await userRepo.findByEmail(email);
+  // If the user doesn't exist, throw a 404
+  if (!userFound) {
+    throw ServiceError.notFound(`user ${email} not found`);
+  }
+  return outgoingFormat(userFound);
+};
+
+// Register
+// -------------------
+const register = async (email, password) => {
+  debugLog(`Received register request for user ${email}`);
+  // Check if the user already exists
+  // Add the necessary fields to the user object
+  await create({
+    email: email,
+    password: password,
+    date_created: new Date(),
+  });
+};
+
+// -------------------
+// exports
 // -------------------
 module.exports = {
-  getAll,
-  getById,
-  getByEmail,
+  findAll,
+  findById,
   create,
-  updateById,
+  update,
   deleteById,
+  findByEmail,
+  register,
 };

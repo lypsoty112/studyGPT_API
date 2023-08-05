@@ -1,64 +1,73 @@
-const { tables, getKnex } = require('../data/index');
-const { getLogger } = require('../core/logging');
+const { tables, getKnex } = require("../data/index");
+const { getLogger } = require("../core/logging");
 
 // ------------------------------------
 // find all
 // ------------------------------------
 const findAll = async () => {
-  return getKnex()(tables.subscription).select().orderBy('subscription_id');
-}
+  try {
+    return await getKnex()
+      .select()
+      .from(tables.subscription)
+      .orderBy("subscription_id");
+  } catch (err) {
+    getLogger().error(err);
+    throw err;
+  }
+};
 
 // ------------------------------------
 // find by id
 // ------------------------------------
 const findById = async (subscriptionId) => {
   try {
-    return getKnex()(tables.subscription).select().where('subscription_id', subscriptionId).first();
+    return await getKnex()
+      .select()
+      .from(tables.subscription)
+      .where({ subscription_id: subscriptionId })
+      .first();
   } catch (err) {
     getLogger().error(err);
     throw err;
   }
-}
+};
 
 // ------------------------------------
 // create
 // ------------------------------------
 const create = async (subscriptionObject) => {
   try {
-    const result = await getKnex()(tables.subscription).insert(
-      subscriptionObject
-    );
-    return result[0];
+    return (await getKnex()(tables.subscription).insert(subscriptionObject))[0];
   } catch (err) {
-    const logger = getLogger();
-    logger.error(`Error creating subscription with values ${JSON.stringify(subscriptionObject)}`, err);
+    getLogger().error(err);
     throw err;
   }
-}
+};
 
 // ------------------------------------
 // update
 // ------------------------------------
 const update = async (subscriptionId, subscriptionObject) => {
   try {
-    await getKnex()(tables.subscription).where('subscription_id', subscriptionId).update(subscriptionObject);
-    return subscriptionId;
+    await getKnex()(tables.subscription)
+      .where({ subscription_id: subscriptionId })
+      .update(subscriptionObject);
   } catch (err) {
-    const logger = getLogger();
-    logger.error(`Error updating subscription with id ${subscriptionId}`, err);
+    getLogger().error(err);
     throw err;
   }
-}
+};
 
 // ------------------------------------
 // delete
 // ------------------------------------
 const deleteById = async (subscriptionId) => {
   try {
-    await getKnex()(tables.subscription).where('subscription_id', subscriptionId).del();
+    await getKnex()(tables.subscription)
+      .where({ subscription_id: subscriptionId })
+      .del();
   } catch (err) {
-    const logger = getLogger();
-    logger.error(`Error deleting subscription with id ${subscriptionId}`, err);
+    getLogger().error(err);
     throw err;
   }
 };
@@ -71,5 +80,5 @@ module.exports = {
   findById,
   create,
   update,
-  deleteById
+  deleteById,
 };
