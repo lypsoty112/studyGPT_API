@@ -12,6 +12,8 @@ const JWT_EXPIRES_IN = config.get("jwt.expiresIn");
 
 const { formatIncomingUser } = require("../service/_formats");
 
+// TODO: implement token expiration
+
 // -------------------
 // Logging
 // -------------------

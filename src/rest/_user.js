@@ -57,6 +57,18 @@ logIn.validationScheme = {
 };
 
 // -------------------
+// Register
+// -------------------
+const register = async (ctx) => {
+  // TODO: implement register
+  ctx.body = "register";
+  ctx.status = 200;
+};
+register.validationScheme = {
+  body: loginBodyValidation,
+};
+
+// -------------------
 // update user
 // -------------------
 const updateUser = async (ctx) => {
@@ -108,6 +120,7 @@ module.exports = (app) => {
     createUser
   );
   router.post("/login", validate(logIn.validationScheme), logIn);
+  router.post("/register", validate(register.validationScheme), register);
   router.put(
     "/:userId",
     secureRoute,
