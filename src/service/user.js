@@ -3,6 +3,14 @@ const { getLogger } = require("../core/logging");
 const ServiceError = require("../core/serviceError");
 const { formatOutgoingUser, formatIncomingUser } = require("./_formats");
 
+/*
+  return {
+    subscription_id: user.subscriptionId,
+    email: user.email,
+    password: user.password,
+    registration_date: user.registrationDate,
+  };*/
+
 // -------------------
 // Logging
 // -------------------
@@ -35,6 +43,15 @@ const getById = async (userId) => {
 };
 
 // -------------------
+// Get by email
+// -------------------
+const getByEmail = async (email) => {
+  debugLog(`Fetching user with email ${email}`);
+  const user = await userRepo.findByEmail(email);
+  return formatOutgoingUser(user);
+};
+
+// -------------------
 // Create
 // -------------------
 const create = async (userObject) => {
@@ -53,7 +70,6 @@ const create = async (userObject) => {
     }
   }
 };
-
 // -------------------
 // Update
 // -------------------
@@ -98,6 +114,7 @@ const deleteById = async (userId) => {
 module.exports = {
   getAll,
   getById,
+  getByEmail,
   create,
   updateById,
   deleteById,

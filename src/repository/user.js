@@ -5,7 +5,7 @@ const { getLogger } = require("../core/logging");
 // find all
 // ------------------------------------
 const findAll = async () => {
-  return getKnex()(tables.user).select().orderBy("user_id");
+  return await getKnex()(tables.user).select().orderBy("user_id");
 };
 
 // ------------------------------------
@@ -13,7 +13,10 @@ const findAll = async () => {
 // ------------------------------------
 const findById = async (userId) => {
   try {
-    return getKnex()(tables.user).select().where("user_id", userId).first();
+    return await getKnex()(tables.user)
+      .select()
+      .where("user_id", userId)
+      .first();
   } catch (err) {
     getLogger().error(err);
     throw err;
@@ -25,7 +28,7 @@ const findById = async (userId) => {
 // ------------------------------------
 const findByEmail = async (email) => {
   try {
-    return getKnex()(tables.user).select().where("email", email).first();
+    return await getKnex()(tables.user).select().where("email", email).first();
   } catch (err) {
     getLogger().error(err);
     throw err;

@@ -17,4 +17,7 @@ module.exports = {
   upload: {
     fileSizeLimit: 30000000, // 30MB
   },
+  jwt: {
+    expiresIn: "1d",
+  },
 };

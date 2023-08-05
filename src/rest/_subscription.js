@@ -3,6 +3,7 @@ const Router = require("@koa/router");
 const service = require("../service/subscription");
 const validate = require("./_validation.js");
 const { idValidation, subscriptionBodyValidation } = require("./__validations");
+const secureRoute = require("../auth/jwt");
 
 // -------------------
 // Get all
@@ -86,16 +87,19 @@ module.exports = (app) => {
   );
   router.post(
     "/",
+    secureRoute,
     validate(createSubscription.validationScheme),
     createSubscription
   );
   router.put(
     "/:subscriptionId",
+    secureRoute,
     validate(updateSubscription.validationScheme),
     updateSubscription
   );
   router.delete(
     "/:subscriptionId",
+    secureRoute,
     validate(deleteSubscription.validationScheme),
     deleteSubscription
   );

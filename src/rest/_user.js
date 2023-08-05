@@ -2,7 +2,13 @@ const Router = require("@koa/router");
 
 const service = require("../service/user");
 const validate = require("./_validation.js");
-const { idValidation, userBodyValidation } = require("./__validations");
+const authenticate = require("../auth/authenticate");
+const secureRoute = require("../auth/jwt");
+const {
+  idValidation,
+  userBodyValidation,
+  loginBodyValidation,
+} = require("./__validations");
 
 // -------------------
 // Get all
@@ -39,6 +45,18 @@ createUser.validationScheme = {
 };
 
 // -------------------
+// Log in
+// -------------------
+const logIn = async (ctx) => {
+  const response = await authenticate(ctx.request.body);
+  ctx.body = response;
+  ctx.status = 200;
+};
+logIn.validationScheme = {
+  body: loginBodyValidation,
+};
+
+// -------------------
 // update user
 // -------------------
 const updateUser = async (ctx) => {
@@ -71,11 +89,37 @@ deleteUser.validationScheme = {
 module.exports = (app) => {
   const router = new Router({ prefix: "/user" });
 
-  router.get("/", validate(getAllUsers.validationScheme), getAllUsers);
-  router.get("/:userId", validate(getUserById.validationScheme), getUserById);
-  router.post("/", validate(createUser.validationScheme), createUser);
-  router.put("/:userId", validate(updateUser.validationScheme), updateUser);
-  router.delete("/:userId", validate(deleteUser.validationScheme), deleteUser);
+  router.get(
+    "/",
+    secureRoute,
+    validate(getAllUsers.validationScheme),
+    getAllUsers
+  );
+  router.get(
+    "/:userId",
+    secureRoute,
+    validate(getUserById.validationScheme),
+    getUserById
+  );
+  router.post(
+    "/",
+    secureRoute,
+    validate(createUser.validationScheme),
+    createUser
+  );
+  router.post("/login", validate(logIn.validationScheme), logIn);
+  router.put(
+    "/:userId",
+    secureRoute,
+    validate(updateUser.validationScheme),
+    updateUser
+  );
+  router.delete(
+    "/:userId",
+    secureRoute,
+    validate(deleteUser.validationScheme),
+    deleteUser
+  );
 
   app.use(router.routes()).use(router.allowedMethods());
 };

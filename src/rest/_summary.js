@@ -5,6 +5,7 @@ const multer = require("@koa/multer");
 const service = require("../service/summary");
 const validate = require("./_validation.js");
 const { idValidation, summaryBodyValidation } = require("./__validations");
+const secureRoute = require("../auth/jwt");
 
 const config = require("config");
 const fileSizeLimit = config.get("upload.fileSizeLimit");
@@ -98,26 +99,35 @@ module.exports = (app) => {
       fileSize: fileSizeLimit,
     },
   });
-  router.get("/", getSummaries);
+  router.get("/", secureRoute, getSummaries);
   router.get(
     "/:summaryId",
+    secureRoute,
     validate(getSummaryById.validationScheme),
     getSummaryById
   );
   router.post(
     "/create",
+    secureRoute,
     upload.single("file"),
     validate(createSummary.validationScheme),
     createSummary
   );
-  router.post("/", validate(postSummary.validationScheme), postSummary);
+  router.post(
+    "/",
+    secureRoute,
+    validate(postSummary.validationScheme),
+    postSummary
+  );
   router.put(
     "/:summaryId",
+    secureRoute,
     validate(updateSummary.validationScheme),
     updateSummary
   );
   router.delete(
     "/:summaryId",
+    secureRoute,
     validate(deleteSummary.validationScheme),
     deleteSummary
   );

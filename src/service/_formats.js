@@ -184,6 +184,7 @@ const formatOutgoingUser = (user) => {
     userId: user.user_id,
     subscriptionId: user.subscription_id,
     email: user.email,
+    password: user.password,
     registrationDate: user.registration_date,
   };
 };

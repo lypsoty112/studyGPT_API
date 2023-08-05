@@ -3,7 +3,7 @@ const Router = require("@koa/router");
 const service = require("../service/status");
 const validate = require("./_validation.js");
 const { idValidation } = require("./__validations");
-
+const secureRoute = require("../auth/jwt");
 // -------------------
 // Get all
 // -------------------
@@ -35,6 +35,7 @@ module.exports = (app) => {
   router.get("/", validate(getAllStatuses.validationScheme), getAllStatuses);
   router.get(
     "/:statusId",
+    secureRoute,
     validate(getStatusById.validationScheme),
     getStatusById
   );

@@ -3,6 +3,7 @@ const Router = require("@koa/router");
 const service = require("../service/payment");
 const validate = require("./_validation.js");
 const { idValidation, paymentBodyValidation } = require("./__validations");
+const secureRoute = require("../auth/jwt");
 
 // -------------------
 // Get all
@@ -84,25 +85,34 @@ deletePayment.validationScheme = {
 module.exports = (app) => {
   const router = new Router({ prefix: "/payment" });
 
-  router.get("/", validate(getAllPayments.validationScheme), getAllPayments);
+  router.get(
+    "/",
+    secureRoute,
+    validate(getAllPayments.validationScheme),
+    getAllPayments
+  );
   router.get(
     "/:paymentId",
+    secureRoute,
     validate(getPaymentById.validationScheme),
     getPaymentById
   );
   router.get(
     "/user/:userId",
+    secureRoute,
     validate(getPaymentByUserId.validationScheme),
     getPaymentByUserId
   );
   router.post("/", validate(createPayment.validationScheme), createPayment);
   router.put(
     "/:paymentId",
+    secureRoute,
     validate(updatePayment.validationScheme),
     updatePayment
   );
   router.delete(
     "/:paymentId",
+    secureRoute,
     validate(deletePayment.validationScheme),
     deletePayment
   );

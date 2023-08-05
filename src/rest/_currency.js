@@ -3,6 +3,7 @@ const Router = require("@koa/router");
 const service = require("../service/currency");
 const validate = require("./_validation.js");
 const { idValidation } = require("./__validations");
+const secureRoute = require("../auth/jwt");
 
 // -------------------
 // Get all
@@ -34,11 +35,13 @@ module.exports = (app) => {
 
   router.get(
     "/",
+    secureRoute,
     validate(getAllCurrencies.validationScheme),
     getAllCurrencies
   );
   router.get(
     "/:currencyId",
+    secureRoute,
     validate(getCurrencyById.validationScheme),
     getCurrencyById
   );
