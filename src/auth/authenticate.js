@@ -10,8 +10,6 @@ const { findByEmail } = require("../repository/user");
 const JWT_SECRET = config.get("jwt.secret");
 const JWT_EXPIRES_IN = config.get("jwt.expiresIn");
 
-// TODO: implement token expiration
-
 // -------------------
 // Logging
 // -------------------
@@ -24,7 +22,8 @@ const createToken = (user) => {
   const token = jwt.sign(
     {
       email: user.email,
-      userId: user.userId,
+      user_id: user.user_id,
+      role_id: user.role_id,
     },
     JWT_SECRET,
     {
