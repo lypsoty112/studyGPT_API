@@ -5,6 +5,7 @@ const validate = require("./_validation.js");
 const authenticate = require("../auth/authenticate");
 const secureRoute = require("../auth/jwt");
 const { getLogger } = require("../core/logging");
+const { getTokenInfo } = require("../auth/tokenInfo");
 const Joi = require("joi");
 
 // -------------------
@@ -144,11 +145,27 @@ register.validationScheme = {
   },
 };
 
+// -------------------
+// Me
+// -------------------
+const getMe = async (ctx) => {
+  // Check if the user is logged in
+  const tokenInfo = getTokenInfo(ctx);
+  ctx.body = await service.findById(tokenInfo.user_id);
+  ctx.request.status = 200;
+};
+getMe.validationScheme = null;
 // Exports
 module.exports = (app) => {
   const router = new Router({ prefix: "/user" });
   router.get("/", secureRoute, getAll);
-  router.get("/:id", secureRoute, validate(getById.validationScheme), getById);
+  router.get("/me", secureRoute, getMe);
+  router.get(
+    "/id/:id",
+    secureRoute,
+    validate(getById.validationScheme),
+    getById
+  );
   router.post("/", secureRoute, validate(create.validationScheme), create);
   router.put("/:id", secureRoute, validate(update.validationScheme), update);
   router.get(

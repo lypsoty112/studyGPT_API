@@ -123,6 +123,14 @@ const findByUserId = async (userId) => {
 };
 
 // -------------------
+// Find home data by user id
+// -------------------
+const findHomeDataByUserId = async (userId) => {
+  debugLog(`Received get home data by user id request for id ${userId}`);
+  return outgoingFormat(await summaryRepo.findHomeDataByUserId(userId));
+};
+
+// -------------------
 // exports
 // -------------------
 
@@ -134,4 +142,5 @@ module.exports = {
   deleteById,
   newSummary,
   findByUserId,
+  findHomeDataByUserId,
 };

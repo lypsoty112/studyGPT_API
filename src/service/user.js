@@ -16,12 +16,41 @@ const outgoingFormat = (object) => {
   if (Array.isArray(object)) {
     // If it's a list, map each object
     object = object.map((user) => {
+      // Get the subscription id
       delete user.password;
+      // Set the subscription data in a data field
+      user.subscription = {
+        subscription_id: user.subscription_id,
+        description: user.description,
+        title: user.title,
+        price: user.price,
+      };
+      // Remove the subscription id
+      delete user.subscription_id;
+      // Remove the subscription fields
+      delete user.title;
+      delete user.description;
+      delete user.price;
+      // Return the user
       return user;
     });
   } else {
     // If it's a single object, simply remove the password
     delete object.password;
+    object.subscription = {
+      subscription_id: object.subscription_id,
+      description: object.description,
+      title: object.title,
+      price: object.price,
+    };
+    // Remove the subscription id
+    delete object.subscription_id;
+    // Remove the subscription fields
+    delete object.title;
+    delete object.description;
+    delete object.price;
+    // Return the user
+    return object;
   }
 
   return {

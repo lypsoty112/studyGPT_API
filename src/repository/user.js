@@ -6,7 +6,14 @@ const { getLogger } = require("../core/logging");
 // ------------------------------------
 const findAll = async () => {
   try {
-    return await getKnex()(tables.user).select().orderBy("user_id");
+    return await getKnex()(tables.user)
+      .select()
+      .join(
+        tables.subscription,
+        "user.subscription_id",
+        "subscription.subscription_id"
+      )
+      .orderBy("user_id");
   } catch (err) {
     getLogger().error(`Error in userRepo.findAll: ${err}`);
     throw err;
@@ -21,6 +28,11 @@ const findById = async (userId) => {
     return await getKnex()(tables.user)
       .select()
       .where("user_id", userId)
+      .join(
+        tables.subscription,
+        "user.subscription_id",
+        "subscription.subscription_id"
+      )
       .first();
   } catch (err) {
     getLogger().error(`Error in userRepo.findById: ${err}`);
@@ -71,7 +83,15 @@ const deleteById = async (userId) => {
 // ------------------------------------
 const findByEmail = async (email) => {
   try {
-    return await getKnex()(tables.user).select().where("email", email).first();
+    return await getKnex()(tables.user)
+      .select()
+      .join(
+        tables.subscription,
+        "user.subscription_id",
+        "subscription.subscription_id"
+      )
+      .where("email", email)
+      .first();
   } catch (err) {
     getLogger().error(`Error in userRepo.findByEmail: ${err}`);
     throw err;

@@ -7,6 +7,7 @@ const validate = require("./_validation.js");
 const secureRoute = require("../auth/jwt");
 
 const config = require("config");
+const { getTokenInfo } = require("../auth/tokenInfo");
 const fileSizeLimit = config.get("upload.fileSizeLimit");
 
 // -------------------
@@ -146,12 +147,22 @@ getByUserId.validationScheme = {
 };
 
 // -------------------
+// find home data for user
+// -------------------
+const getHomeData = async (ctx) => {
+  // Get the user id from the token
+  ctx.body = await service.findHomeDataByUserId(getTokenInfo(ctx).user_id);
+  ctx.request.status = 200;
+};
+getHomeData.validationScheme = null;
+// -------------------
 // Exports
 // -------------------
 
 module.exports = (app) => {
   const router = new Router({ prefix: "/summary" });
   router.get("/", secureRoute, getAll);
+  router.get("/home", secureRoute, getHomeData);
   router.get("/:id", secureRoute, validate(getById.validationScheme), getById);
   router.post("/", secureRoute, validate(create.validationScheme), create);
   router.put("/:id", secureRoute, validate(update.validationScheme), update);
@@ -174,5 +185,6 @@ module.exports = (app) => {
     validate(getByUserId.validationScheme),
     getByUserId
   );
+
   app.use(router.routes()).use(router.allowedMethods());
 };

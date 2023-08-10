@@ -82,6 +82,19 @@ const findByUserId = async (userId) => {
   }
 };
 
+const findHomeDataByUserId = async (userId) => {
+  try {
+    return await getKnex()
+      .select("date_created", "summary_id", "title", "description")
+      .from(tables.summary)
+      .where({ user_id: userId })
+      .orderBy("date_created", "desc");
+  } catch (err) {
+    getLogger().error(err);
+    throw err;
+  }
+};
+
 // ------------------------------------
 // exports
 // ------------------------------------
@@ -92,4 +105,5 @@ module.exports = {
   update,
   deleteById,
   findByUserId,
+  findHomeDataByUserId,
 };
