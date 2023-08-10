@@ -6,7 +6,16 @@ const { getLogger } = require("../core/logging");
 // ------------------------------------
 const findAll = async () => {
   try {
-    return await getKnex().select().from(tables.payment).orderBy("payment_id");
+    return await getKnex()
+      .select()
+      .from(tables.payment)
+      .join(
+        tables.subscription,
+        "payment.subscription_id",
+        "=",
+        "subscription.subscription_id"
+      )
+      .orderBy("payment_id");
   } catch (err) {
     getLogger().error(err);
     throw err;
@@ -21,6 +30,12 @@ const findById = async (paymentId) => {
     return await getKnex()
       .select()
       .from(tables.payment)
+      .join(
+        tables.subscription,
+        "payment.subscription_id",
+        "=",
+        "subscription.subscription_id"
+      )
       .where({ payment_id: paymentId })
       .first();
   } catch (err) {
@@ -75,6 +90,12 @@ const findByUserId = async (userId) => {
     return await getKnex()
       .select()
       .from(tables.payment)
+      .join(
+        tables.subscription,
+        "payment.subscription_id",
+        "=",
+        "subscription.subscription_id"
+      )
       .where({ user_id: userId })
       .orderBy("payment_id");
   } catch (err) {

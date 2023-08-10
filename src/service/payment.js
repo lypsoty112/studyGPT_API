@@ -9,10 +9,30 @@ const debugLog = (message, meta = {}) => {
   if (!this.logger) this.logger = getLogger();
   this.logger.debug(message, meta);
 };
-const outgoingFormat = (object) => {
+const outgoingFormat = ({
+  payment_id,
+  amount,
+  currency,
+  payment_date,
+  subscription_id,
+  user_id,
+  description,
+  price,
+  title,
+}) => {
   // Add a data & status field to the object
   return {
-    data: object,
+    id: payment_id,
+    amount,
+    currency,
+    date: payment_date,
+    subscription: {
+      id: subscription_id,
+      description,
+      price,
+      title,
+    },
+    user_id,
   };
 };
 
@@ -21,7 +41,8 @@ const outgoingFormat = (object) => {
 // -------------------
 const findAll = async () => {
   debugLog("Received get all request for payment");
-  return outgoingFormat(await paymentRepo.findAll());
+  const payments = await paymentRepo.findAll();
+  return payments.map(outgoingFormat);
 };
 
 // -------------------
@@ -31,7 +52,7 @@ const findAll = async () => {
 const findById = async (paymentId) => {
   debugLog(`Received get by id request for payment ${paymentId}`);
   // Find the payment
-  paymentFound = await paymentRepo.findById(paymentId);
+  const paymentFound = await paymentRepo.findById(paymentId);
   // If the payment doesn't exist, throw a 404
   if (!paymentFound) {
     throw ServiceError.notFound(`payment ${paymentId} not found`);
@@ -89,7 +110,8 @@ const deleteById = async (paymentId) => {
 // -------------------
 const findByUserId = async (userId) => {
   debugLog(`Received get by user id request for payment ${userId}`);
-  return outgoingFormat(await paymentRepo.findByUserId(userId));
+  const payments = await paymentRepo.findByUserId(userId);
+  return payments.map(outgoingFormat);
 };
 
 module.exports = {

@@ -4,6 +4,7 @@ const service = require("../service/payment");
 const validate = require("./_validation.js");
 const secureRoute = require("../auth/jwt");
 const Joi = require("joi");
+const { getTokenInfo } = require("../auth/tokenInfo");
 
 // -------------------
 // Validation
@@ -109,13 +110,33 @@ getByUserId.validationScheme = {
 };
 
 // -------------------
+// Get by token
+// -------------------
+const getByToken = async (ctx) => {
+  ctx.body = await service.findByUserId(getTokenInfo(ctx).user_id);
+  ctx.request.status = 200;
+};
+getByToken.validationScheme = null;
+
+// -------------------
 // Routes
 // -------------------
 module.exports = (app) => {
   const router = new Router({ prefix: "/payment" });
 
   router.get("/", secureRoute, validate(getAll.validationScheme), getAll);
-  router.get("/:id", secureRoute, validate(getById.validationScheme), getById);
+  router.get(
+    "/id/:id",
+    secureRoute,
+    validate(getById.validationScheme),
+    getById
+  );
+  router.get(
+    "/token",
+    secureRoute,
+    validate(getByToken.validationScheme),
+    getByToken
+  );
   router.post("/", secureRoute, validate(create.validationScheme), create);
   router.put("/:id", secureRoute, validate(update.validationScheme), update);
   router.delete(
