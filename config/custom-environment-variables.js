@@ -10,4 +10,7 @@ module.exports = {
   jwt: {
     secret: "JWT_SECRET",
   },
+  encryption: {
+    key: "ENCRYPTION_KEY",
+  },
 };

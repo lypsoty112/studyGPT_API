@@ -3,10 +3,10 @@ const { tables } = require("..");
 exports.up = function (knex) {
   return knex.schema.createTable(tables.parameterClass, function (table) {
     table.increments("parameter_class_id").unsigned().primary();
-    table.text("command");
-    table.text("description");
-    table.string("name", 255);
-    table.string("selectionType", 255);
+    table.text("class_command");
+    table.text("class_description");
+    table.string("class_name", 255);
+    table.string("class_selectionType", 255);
   });
 };
 

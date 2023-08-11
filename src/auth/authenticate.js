@@ -9,6 +9,7 @@ const config = require("config");
 const { findByEmail } = require("../repository/user");
 const JWT_SECRET = config.get("jwt.secret");
 const JWT_EXPIRES_IN = config.get("jwt.expiresIn");
+const ENCRYPTION_KEY = config.get("encryption.key");
 
 // -------------------
 // Logging
@@ -18,12 +19,15 @@ const debugLog = (message, meta = {}) => {
   this.logger.debug(message, meta);
 };
 
+function encryptNumber(number) {
+  return number ^ ENCRYPTION_KEY; // XOR operation for encryption
+}
+
 const createToken = (user) => {
   const token = jwt.sign(
     {
-      email: user.email,
-      user_id: user.user_id,
-      role_id: user.role_id,
+      user_id: encryptNumber(user.user_id),
+      role_id: encryptNumber(user.role_id),
     },
     JWT_SECRET,
     {
@@ -40,11 +44,11 @@ module.exports = async function (userObject) {
   // Check if  the user exists
   let userFound = await findByEmail(user.email);
   if (!userFound) {
-    throw new ServiceError("Mail not found", 401);
+    throw ServiceError.notFound(`user ${user.email} not found`);
   }
   // Check if the password is correct
   if (userFound.password !== user.password) {
-    throw new ServiceError("Invalid password", 401);
+    throw ServiceError.unauthorized("Invalid password");
   }
 
   // Create the token

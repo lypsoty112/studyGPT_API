@@ -13,6 +13,7 @@ const findAll = async () => {
         "user.subscription_id",
         "subscription.subscription_id"
       )
+      .join(tables.role, "user.role_id", "role.role_id")
       .orderBy("user_id");
   } catch (err) {
     getLogger().error(`Error in userRepo.findAll: ${err}`);
@@ -33,6 +34,7 @@ const findById = async (userId) => {
         "user.subscription_id",
         "subscription.subscription_id"
       )
+      .join(tables.role, "user.role_id", "role.role_id")
       .first();
   } catch (err) {
     getLogger().error(`Error in userRepo.findById: ${err}`);
@@ -90,6 +92,7 @@ const findByEmail = async (email) => {
         "user.subscription_id",
         "subscription.subscription_id"
       )
+      .join(tables.role, "user.role_id", "role.role_id")
       .where("email", email)
       .first();
   } catch (err) {

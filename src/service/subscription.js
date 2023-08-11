@@ -10,10 +10,13 @@ const debugLog = (message, meta = {}) => {
   if (!this.logger) this.logger = getLogger();
   this.logger.debug(message, meta);
 };
-const outgoingFormat = (object) => {
+const outgoingFormat = ({ subscription_id, description, price, title }) => {
   // Add a data & status field to the object
   return {
-    data: object,
+    id: subscription_id,
+    description,
+    price,
+    title,
   };
 };
 
@@ -22,7 +25,8 @@ const outgoingFormat = (object) => {
 // -------------------
 const findAll = async () => {
   debugLog("Received get all request for subscription");
-  return outgoingFormat(await subscriptionRepo.findAll());
+  const subscriptions = await subscriptionRepo.findAll();
+  return subscriptions.map(outgoingFormat);
 };
 
 // -------------------

@@ -14,6 +14,7 @@ const outgoingFormat = ({
   amount,
   currency,
   payment_date,
+  payment_status,
   subscription_id,
   user_id,
   description,
@@ -24,6 +25,7 @@ const outgoingFormat = ({
   return {
     id: payment_id,
     amount,
+    status: payment_status,
     currency,
     date: payment_date,
     subscription: {

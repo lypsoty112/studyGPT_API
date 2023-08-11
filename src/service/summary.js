@@ -13,10 +13,26 @@ const debugLog = (message, meta = {}) => {
   this.logger.debug(message, meta);
 };
 
-const outgoingFormat = (object) => {
+const outgoingFormat = ({
+  summary_id,
+  content,
+  date_created,
+  date_modified,
+  description,
+  title,
+  user_id,
+}) => {
   // Add a data & status field to the object
   return {
-    data: object,
+    id: summary_id,
+    content,
+    date_created,
+    date_modified,
+    description,
+    title,
+    user: {
+      id: user_id,
+    },
   };
 };
 // -------------------
@@ -24,7 +40,8 @@ const outgoingFormat = (object) => {
 // -------------------
 const findAll = async () => {
   debugLog("Received get all request for summary");
-  return outgoingFormat(await summaryRepo.findAll());
+  const summaries = await summaryRepo.findAll();
+  return summaries.map(outgoingFormat);
 };
 
 // -------------------
@@ -119,7 +136,8 @@ const newSummary = async (incomingObject, file) => {
 // -------------------
 const findByUserId = async (userId) => {
   debugLog(`Received get by user id request for id ${userId}`);
-  return outgoingFormat(await summaryRepo.findByUserId(userId));
+  const summaryFound = await summaryRepo.findByUserId(userId);
+  return summaryFound.map(outgoingFormat);
 };
 
 // -------------------
@@ -127,7 +145,8 @@ const findByUserId = async (userId) => {
 // -------------------
 const findHomeDataByUserId = async (userId) => {
   debugLog(`Received get home data by user id request for id ${userId}`);
-  return outgoingFormat(await summaryRepo.findHomeDataByUserId(userId));
+  const summaryFound = await summaryRepo.findHomeDataByUserId(userId);
+  return summaryFound.map(outgoingFormat);
 };
 
 // -------------------

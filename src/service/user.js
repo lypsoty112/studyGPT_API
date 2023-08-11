@@ -9,52 +9,43 @@ const ServiceError = require("../core/serviceError");
     registration_date: user.registrationDate,
   };*/
 
-const outgoingFormat = (object) => {
-  // Add a data & status field to the object
-  // Remove the password
-  // Check if object is a list or a single object
-  if (Array.isArray(object)) {
-    // If it's a list, map each object
-    object = object.map((user) => {
-      // Get the subscription id
-      delete user.password;
-      // Set the subscription data in a data field
-      user.subscription = {
-        subscription_id: user.subscription_id,
-        description: user.description,
-        title: user.title,
-        price: user.price,
-      };
-      // Remove the subscription id
-      delete user.subscription_id;
-      // Remove the subscription fields
-      delete user.title;
-      delete user.description;
-      delete user.price;
-      // Return the user
-      return user;
-    });
-  } else {
-    // If it's a single object, simply remove the password
-    delete object.password;
-    object.subscription = {
-      subscription_id: object.subscription_id,
-      description: object.description,
-      title: object.title,
-      price: object.price,
-    };
-    // Remove the subscription id
-    delete object.subscription_id;
-    // Remove the subscription fields
-    delete object.title;
-    delete object.description;
-    delete object.price;
-    // Return the user
-    return object;
-  }
+/**        user_id: 11,
+    date_created: 2023-08-10T18:00:00.000Z,
+    email: 'test@studygpt.com',
+    password: 'password',
+    role_id: 1,
+    subscription_id: 1,
+    description: 'Free subscription with limited features',
+    price: '0.00',
+    title: 'Free',
+    name: 'admin */
 
+const outgoingFormat = ({
+  user_id,
+  date_created,
+  email,
+  password,
+  role_id,
+  subscription_id,
+  description,
+  price,
+  title,
+  name,
+}) => {
   return {
-    data: object,
+    id: user_id,
+    date_created,
+    email,
+    role: {
+      id: role_id,
+      name,
+    },
+    subscription: {
+      id: subscription_id,
+      description,
+      price,
+      title,
+    },
   };
 };
 // -------------------
@@ -70,7 +61,8 @@ const debugLog = (message, meta = {}) => {
 // -------------------
 const findAll = async () => {
   debugLog("Received get all request for user");
-  return outgoingFormat(await userRepo.findAll());
+  const users = await userRepo.findAll();
+  return users.map(outgoingFormat);
 };
 
 // -------------------

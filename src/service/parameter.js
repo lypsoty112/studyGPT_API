@@ -10,10 +10,39 @@ const debugLog = (message, meta = {}) => {
   this.logger.debug(message, meta);
 };
 
-const outgoingFormat = (object) => {
-  // Add a data & status field to the object
+/*parameter_id: 9,
+  command: 'cmd9',
+  description: 'Description for parameter 9',
+  name: 'Parameter 9',
+  parameter_class_id: 5,
+  class_command: 'cmd5',
+  class_description: 'Description for command 5',
+  class_name: 'Parameter Class 5',
+  class_selectionType: 'Type B */
+
+const outgoingFormat = ({
+  parameter_id,
+  command,
+  description,
+  name,
+  parameter_class_id,
+  class_command,
+  class_description,
+  class_name,
+  class_selectionType,
+}) => {
   return {
-    data: object,
+    id: parameter_id,
+    command,
+    description,
+    name,
+    class: {
+      id: parameter_class_id,
+      command: class_command,
+      description: class_description,
+      name: class_name,
+      selectionType: class_selectionType,
+    },
   };
 };
 
@@ -22,7 +51,8 @@ const outgoingFormat = (object) => {
 // -------------------
 const findAll = async () => {
   debugLog("Received get all request for parameter");
-  return outgoingFormat(await parameterRepo.findAll());
+  const parameters = await parameterRepo.findAll();
+  return parameters.map(outgoingFormat);
 };
 
 // -------------------
