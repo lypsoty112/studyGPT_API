@@ -146,6 +146,25 @@ register.validationScheme = {
 };
 
 // -------------------
+// Check password
+// -------------------
+
+const checkPassword = async (ctx) => {
+  // Get the user
+  // Returns an empty object if the user is not found
+  ctx.body = await service.checkPassword(
+    getTokenInfo(ctx).user_id,
+    ctx.request.body.password
+  );
+  ctx.request.status = 204;
+};
+checkPassword.validationScheme = {
+  body: {
+    password: validation.password,
+  },
+};
+
+// -------------------
 // Me
 // -------------------
 const getMe = async (ctx) => {
@@ -155,6 +174,26 @@ const getMe = async (ctx) => {
   ctx.request.status = 200;
 };
 getMe.validationScheme = null;
+
+// -------------------
+// Edit me
+// -------------------
+const editMe = async (ctx) => {
+  // Check if the user is logged in
+  const tokenInfo = getTokenInfo(ctx);
+  // Edit the user
+
+  ctx.body = await service.update(tokenInfo.user_id, ctx.request.body);
+  ctx.request.status = 200;
+};
+editMe.validationScheme = {
+  body: {
+    email: validation.email.optional(),
+    password: validation.password.optional(),
+    subscription_id: validation.subscription_id.optional(),
+  },
+};
+
 // Exports
 module.exports = (app) => {
   const router = new Router({ prefix: "/user" });
@@ -167,7 +206,8 @@ module.exports = (app) => {
     getById
   );
   router.post("/", secureRoute, validate(create.validationScheme), create);
-  router.put("/:id", secureRoute, validate(update.validationScheme), update);
+  router.put("/id/:id", secureRoute, validate(update.validationScheme), update);
+  router.put("/me", secureRoute, validate(editMe.validationScheme), editMe);
   router.get(
     "/email/:email",
     secureRoute,
@@ -175,12 +215,18 @@ module.exports = (app) => {
     getByEmail
   );
   router.delete(
-    "/:id",
+    "/id/:id",
     secureRoute,
     validate(deleteById.validationScheme),
     deleteById
   );
   router.post("/login", validate(logIn.validationScheme), logIn);
   router.post("/register", validate(register.validationScheme), register);
+  router.post(
+    "/check-password",
+    secureRoute,
+    validate(checkPassword.validationScheme),
+    checkPassword
+  );
   app.use(router.routes()).use(router.allowedMethods());
 };

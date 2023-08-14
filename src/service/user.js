@@ -101,11 +101,21 @@ const update = async (id, userObject) => {
   debugLog(`Received update request for user ${id}`);
   // Find the user
   findById(id);
+  // Check if at least one field is being updated
+  if (
+    !userObject.email &&
+    !userObject.password &&
+    !userObject.subscription_id
+  ) {
+    throw ServiceError.badRequest(`no fields to update`);
+  }
   //  Check if the user already exists
-  let userFound = await userRepo.findByEmail(userObject.email);
-  // If the user already exists, throw a 409
-  if (userFound) {
-    throw ServiceError.conflict(`user ${userObject.email} already exists`);
+  if (userObject.email) {
+    let userFound = await userRepo.findByEmail(userObject.email);
+    // If the user already exists, throw a 409
+    if (userFound && userFound.user_id !== id) {
+      throw ServiceError.conflict(`user ${userObject.email} already exists`);
+    }
   }
   // Update the user
   await userRepo.update(id, userObject);
@@ -138,6 +148,7 @@ const findByEmail = async (email) => {
   return outgoingFormat(userFound);
 };
 
+// -------------------
 // Register
 // -------------------
 const register = async (email, password) => {
@@ -152,6 +163,23 @@ const register = async (email, password) => {
 };
 
 // -------------------
+// Check password
+// -------------------
+const checkPassword = async (user_id, password) => {
+  debugLog(`Received check password request for user ${user_id}`);
+  // Find the user
+  let userFound = await userRepo.findById(user_id);
+  // If the user doesn't exist, throw a 404
+  if (!userFound) {
+    throw ServiceError.notFound(`user ${user_id} not found`);
+  }
+  // Check the password
+  if (userFound.password !== password) {
+    throw ServiceError.unauthorized(`invalid password`);
+  }
+};
+
+// -------------------
 // exports
 // -------------------
 module.exports = {
@@ -162,4 +190,5 @@ module.exports = {
   deleteById,
   findByEmail,
   register,
+  checkPassword,
 };
