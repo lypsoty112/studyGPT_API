@@ -24,7 +24,7 @@ user_id int UN
 */
 
 const validation = {
-  summary_id: Joi.number().integer().positive().required(),
+  summary_id: Joi.string().required(),
   content: Joi.string().required(),
   date_created: Joi.date().required(),
   date_modified: Joi.date().required(),
@@ -57,7 +57,8 @@ getAll.validationScheme = null;
 // Get by id
 // -------------------
 const getById = async (ctx) => {
-  ctx.body = await service.findById(ctx.params.id);
+  const tokenInfo = getTokenInfo(ctx);
+  ctx.body = await service.findById(ctx.params.id, tokenInfo.user_id);
   ctx.request.status = 200;
 };
 getById.validationScheme = {
@@ -122,14 +123,22 @@ deleteById.validationScheme = {
 // New summary
 // -------------------
 const newSummary = async (ctx) => {
-  ctx.body = await service.newSummary(ctx.request.body, ctx.file);
+  // Check if the user is logged in
+  const tokenInfo = getTokenInfo(ctx);
+
+  ctx.body = await service.newSummary(
+    ctx.request.body,
+    tokenInfo.user_id,
+    ctx.file
+  );
   ctx.request.status = 201;
 };
 newSummary.validationScheme = {
   body: {
     description: validation.description,
     title: validation.title,
-    user_id: validation.user_id,
+    // Parameters is an array of integers converted to a JSON string
+    parameters: Joi.string().required(),
   },
 };
 

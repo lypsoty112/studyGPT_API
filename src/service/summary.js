@@ -13,6 +13,25 @@ const debugLog = (message, meta = {}) => {
   this.logger.debug(message, meta);
 };
 
+function integerToBase64(integer) {
+  return btoa(
+    String.fromCharCode.apply(
+      null,
+      new Uint8Array(new Int32Array([integer]).buffer)
+    )
+  );
+}
+
+function base64ToInteger(base64) {
+  return new Int32Array(
+    new Uint8Array(
+      atob(base64)
+        .split("")
+        .map((char) => char.charCodeAt(0))
+    ).buffer
+  )[0];
+}
+
 const outgoingFormat = ({
   summary_id,
   content,
@@ -24,7 +43,7 @@ const outgoingFormat = ({
 }) => {
   // Add a data & status field to the object
   return {
-    id: summary_id,
+    id: integerToBase64(summary_id),
     content,
     date_created,
     date_modified,
@@ -47,13 +66,19 @@ const findAll = async () => {
 // -------------------
 // find by id
 // -------------------
-const findById = async (summaryId) => {
+const findById = async (summaryId, user_id) => {
   debugLog(`Received get by id request for summary ${summaryId}`);
   // Find the summary
-  let summaryFound = await summaryRepo.findById(summaryId);
+  let summaryFound = await summaryRepo.findById(base64ToInteger(summaryId));
   // If the summary doesn't exist, throw a 404
   if (!summaryFound) {
     throw ServiceError.notFound(`summary ${summaryId} not found`);
+  }
+  // If the user is not the owner of the summary, throw a 403
+  if (summaryFound.user_id !== user_id) {
+    throw ServiceError.forbidden(
+      `user ${user_id} is not the owner of summary ${summaryId}`
+    );
   }
   return outgoingFormat(summaryFound);
 };
@@ -73,6 +98,7 @@ const create = async (summaryObject) => {
 // -------------------
 const update = async (summary_id, summaryObject) => {
   // Find the summary
+  summary_id = base64ToInteger(summary_id);
   findById(summary_id);
   // Update the summary
   await summaryRepo.update(summary_id, summaryObject);
@@ -94,7 +120,11 @@ const deleteById = async (summaryId) => {
 // -------------------
 // newSummary
 // -------------------
-const newSummary = async (incomingObject, file) => {
+const newSummary = async (
+  { title, description, parameters },
+  user_id,
+  file
+) => {
   // TODO: implement newSummary for summary service
   // Create the summary
   debugLog(`Creating new summary based on ${JSON.stringify(file)}`);
@@ -128,7 +158,7 @@ const newSummary = async (incomingObject, file) => {
   });
   */
   // Return the summary
-  return findById(1);
+  return findById(integerToBase64(1), user_id);
 };
 
 // -------------------
