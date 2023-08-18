@@ -5,6 +5,7 @@ const validate = require("./_validation.js");
 const secureRoute = require("../auth/jwt");
 const Joi = require("joi");
 const { getTokenInfo } = require("../auth/tokenInfo");
+const { validateRoles, roles } = require("../auth/authenticate");
 
 // -------------------
 // Validation
@@ -124,10 +125,17 @@ getByToken.validationScheme = null;
 module.exports = (app) => {
   const router = new Router({ prefix: "/payment" });
 
-  router.get("/", secureRoute, validate(getAll.validationScheme), getAll);
+  router.get(
+    "/",
+    secureRoute,
+    validateRoles(roles.admin),
+    validate(getAll.validationScheme),
+    getAll
+  );
   router.get(
     "/id/:id",
     secureRoute,
+    validateRoles(roles.admin),
     validate(getById.validationScheme),
     getById
   );
@@ -137,17 +145,31 @@ module.exports = (app) => {
     validate(getByToken.validationScheme),
     getByToken
   );
-  router.post("/", secureRoute, validate(create.validationScheme), create);
-  router.put("/:id", secureRoute, validate(update.validationScheme), update);
+  router.post(
+    "/",
+    validateRoles(roles.admin),
+    secureRoute,
+    validate(create.validationScheme),
+    create
+  );
+  router.put(
+    "/:id",
+    validateRoles(roles.admin),
+    secureRoute,
+    validate(update.validationScheme),
+    update
+  );
   router.delete(
     "/:id",
     secureRoute,
+    validateRoles(roles.admin),
     validate(deleteById.validationScheme),
     deleteById
   );
   router.get(
     "/user/:id",
     secureRoute,
+    validateRoles(roles.admin),
     validate(getByUserId.validationScheme),
     getByUserId
   );

@@ -7,6 +7,7 @@ const secureRoute = require("../auth/jwt");
 const { getLogger } = require("../core/logging");
 const { getTokenInfo } = require("../auth/tokenInfo");
 const Joi = require("joi");
+const { validateRoles, roles } = require("../auth/authenticate");
 
 // -------------------
 // Validation
@@ -197,26 +198,41 @@ editMe.validationScheme = {
 // Exports
 module.exports = (app) => {
   const router = new Router({ prefix: "/user" });
-  router.get("/", secureRoute, getAll);
+  router.get("/", secureRoute, validateRoles(roles.admin), getAll);
   router.get("/me", secureRoute, getMe);
   router.get(
     "/id/:id",
     secureRoute,
+    validateRoles(roles.admin),
     validate(getById.validationScheme),
     getById
   );
-  router.post("/", secureRoute, validate(create.validationScheme), create);
-  router.put("/id/:id", secureRoute, validate(update.validationScheme), update);
+  router.post(
+    "/",
+    secureRoute,
+    validateRoles(roles.admin),
+    validate(create.validationScheme),
+    create
+  );
+  router.put(
+    "/id/:id",
+    secureRoute,
+    validateRoles(roles.admin),
+    validate(update.validationScheme),
+    update
+  );
   router.put("/me", secureRoute, validate(editMe.validationScheme), editMe);
   router.get(
     "/email/:email",
     secureRoute,
+    validateRoles(roles.admin),
     validate(getByEmail.validationScheme),
     getByEmail
   );
   router.delete(
     "/id/:id",
     secureRoute,
+    validateRoles(roles.admin),
     validate(deleteById.validationScheme),
     deleteById
   );

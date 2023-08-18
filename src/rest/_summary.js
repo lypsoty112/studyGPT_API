@@ -8,6 +8,7 @@ const secureRoute = require("../auth/jwt");
 
 const config = require("config");
 const { getTokenInfo } = require("../auth/tokenInfo");
+const { validateRoles, roles } = require("../auth/authenticate");
 const fileSizeLimit = config.get("upload.fileSizeLimit");
 
 // -------------------
@@ -28,7 +29,7 @@ const validation = {
   content: Joi.string().required(),
   date_created: Joi.date().required(),
   date_modified: Joi.date().required(),
-  description: Joi.string().required(),
+  description: Joi.string().required().allow(""),
   title: Joi.string().required(),
   user_id: Joi.number().integer().positive().required(),
 };
@@ -89,7 +90,12 @@ create.validationScheme = {
 // Update
 // -------------------
 const update = async (ctx) => {
-  ctx.body = await service.update(ctx.params.id, ctx.request.body);
+  const tokenInfo = getTokenInfo(ctx);
+  ctx.body = await service.update(
+    ctx.params.id,
+    ctx.request.body,
+    tokenInfo.user_id
+  );
   ctx.request.status = 200;
 };
 update.validationScheme = {
@@ -170,14 +176,33 @@ getHomeData.validationScheme = null;
 
 module.exports = (app) => {
   const router = new Router({ prefix: "/summary" });
-  router.get("/", secureRoute, getAll);
+  router.get("/", secureRoute, validateRoles(roles.admin), getAll);
   router.get("/home", secureRoute, getHomeData);
-  router.get("/:id", secureRoute, validate(getById.validationScheme), getById);
-  router.post("/", secureRoute, validate(create.validationScheme), create);
-  router.put("/:id", secureRoute, validate(update.validationScheme), update);
+  router.get(
+    "/:id",
+    secureRoute,
+    validateRoles(roles.admin),
+    validate(getById.validationScheme),
+    getById
+  );
+  router.post(
+    "/",
+    secureRoute,
+    validateRoles(roles.admin),
+    validate(create.validationScheme),
+    create
+  );
+  router.put(
+    "/:id",
+    validateRoles(roles.admin),
+    secureRoute,
+    validate(update.validationScheme),
+    update
+  );
   router.delete(
     "/:id",
     secureRoute,
+    validateRoles(roles.admin),
     validate(deleteById.validationScheme),
     deleteById
   );

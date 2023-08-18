@@ -4,6 +4,7 @@ const service = require("../service/parameter");
 const validate = require("./_validation.js");
 const secureRoute = require("../auth/jwt");
 const Joi = require("joi");
+const { validateRoles, roles } = require("../auth/authenticate");
 
 // -------------------
 // Validation
@@ -94,13 +95,32 @@ deleteById.validationScheme = {
 // -------------------
 module.exports = (app) => {
   const router = new Router({ prefix: "/parameter" });
-  router.get("/", secureRoute, validate(getAll.validationScheme), getAll);
-  router.get("/:id", secureRoute, validate(getById.validationScheme), getById);
-  router.post("/", secureRoute, validate(create.validationScheme), create);
-  router.put("/:id", secureRoute, validate(update.validationScheme), update);
+  router.get("/", secureRoute, getAll);
+  router.get(
+    "/:id",
+    secureRoute,
+    validateRoles(roles.admin),
+    validate(getById.validationScheme),
+    getById
+  );
+  router.post(
+    "/",
+    secureRoute,
+    validateRoles(roles.admin),
+    validate(create.validationScheme),
+    create
+  );
+  router.put(
+    "/:id",
+    secureRoute,
+    validateRoles(roles.admin),
+    validate(update.validationScheme),
+    update
+  );
   router.delete(
     "/:id",
     secureRoute,
+    validateRoles(roles.admin),
     validate(deleteById.validationScheme),
     deleteById
   );

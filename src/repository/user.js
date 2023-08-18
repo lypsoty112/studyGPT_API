@@ -1,5 +1,11 @@
 const { tables, getKnex } = require("../data/index");
 const { getLogger } = require("../core/logging");
+const bcrypt = require("bcryptjs");
+
+const encryptPassword = async (password) => {
+  const salt = await bcrypt.genSalt(10);
+  return await bcrypt.hash(password, salt);
+};
 
 // ------------------------------------
 // find all
@@ -46,6 +52,8 @@ const findById = async (userId) => {
 // create
 // ------------------------------------
 const create = async (userObject) => {
+  if (userObject.password)
+    userObject.password = await encryptPassword(userObject.password);
   try {
     return (await getKnex()(tables.user).insert(userObject))[0];
   } catch (err) {
@@ -58,6 +66,8 @@ const create = async (userObject) => {
 // update
 // ------------------------------------
 const update = async (userId, userObject) => {
+  if (userObject.password)
+    userObject.password = await encryptPassword(userObject.password);
   try {
     return await getKnex()(tables.user)
       .update(userObject)

@@ -96,14 +96,13 @@ const create = async (summaryObject) => {
 // -------------------
 // update
 // -------------------
-const update = async (summary_id, summaryObject) => {
+const update = async (summary_id, summaryObject, user_id) => {
   // Find the summary
-  summary_id = base64ToInteger(summary_id);
-  findById(summary_id);
+  findById(summary_id, user_id);
   // Update the summary
-  await summaryRepo.update(summary_id, summaryObject);
+  await summaryRepo.update(base64ToInteger(summary_id), summaryObject);
   // Return the updated summary
-  return findById(summary_id);
+  return findById(summary_id, user_id);
 };
 
 // -------------------
