@@ -38,6 +38,7 @@ module.exports = async function createServer() {
         return CORS_ORIGINS[0];
       },
       allowHeaders: ["Accept", "Content-Type", "Authorization"],
+      credentials: true, // Add this line
       maxAge: CORS_MAX_AGE,
     })
   );

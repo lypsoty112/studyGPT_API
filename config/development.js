@@ -18,6 +18,9 @@ module.exports = {
     fileSizeLimit: 30000000, // 30MB
   },
   jwt: {
-    expiresIn: "7d",
+    expiresIn: "1h",
+    refresh: {
+      expiresIn: "2y",
+    },
   },
 };

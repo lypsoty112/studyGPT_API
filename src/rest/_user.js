@@ -2,12 +2,18 @@ const Router = require("@koa/router");
 
 const service = require("../service/user");
 const validate = require("./_validation.js");
-const authenticate = require("../auth/authenticate");
 const secureRoute = require("../auth/jwt");
 const { getLogger } = require("../core/logging");
 const { getTokenInfo } = require("../auth/tokenInfo");
 const Joi = require("joi");
-const { validateRoles, roles } = require("../auth/authenticate");
+const {
+  authenticate,
+  authenticateRefreshToken,
+  validateRoles,
+  roles,
+} = require("../auth/authenticate");
+
+const ENV = process.env.NODE_ENV || "development";
 
 // -------------------
 // Validation
@@ -115,11 +121,26 @@ getByEmail.validationScheme = {
   },
 };
 
+const setAuthentication = async function (ctx) {
+  let [responseBody, refreshToken] = await authenticate(ctx.request.body);
+
+  // Set the refresh token in a httpOnly cookie
+  ctx.cookies.set("refreshToken", refreshToken, {
+    httpOnly: true,
+    maxAge: 1000 * 60 * 60 * 24 * 365 * 2, // 2 years
+    sameSite: "Lax",
+    secure: false,
+  });
+
+  ctx.body = responseBody;
+  return ctx;
+};
+
 // -------------------
 // Log in
 // -------------------
 const logIn = async (ctx) => {
-  ctx.body = await authenticate(ctx.request.body);
+  ctx = await setAuthentication(ctx);
   ctx.request.status = 200;
 };
 logIn.validationScheme = {
@@ -136,8 +157,8 @@ const register = async (ctx) => {
   // Register the user
   await service.register(ctx.request.body.email, ctx.request.body.password);
   // Authenticate the user
-  ctx.body = await authenticate(ctx.request.body);
-  ctx.request.status = 501;
+  ctx = await setAuthentication(ctx);
+  ctx.request.status = 201;
 };
 register.validationScheme = {
   body: {
@@ -145,6 +166,36 @@ register.validationScheme = {
     password: validation.password,
   },
 };
+
+// -------------------
+// Refresh token
+// -------------------
+const refresh = async (ctx) => {
+  // Get the refresh token from the cookie
+  const refreshToken = ctx.cookies.get("refreshToken");
+  // Validate the refresh token
+  ctx.body = await authenticateRefreshToken(refreshToken);
+  // Authenticate the user
+  ctx.request.status = 200;
+};
+refresh.validationScheme = null;
+
+// -------------------
+// Log out
+// -------------------
+const logOut = async (ctx) => {
+  // Get the refresh token from the cookie
+  // Delete the refresh token
+  ctx.cookies.set("refreshToken", null, {
+    httpOnly: true,
+    maxAge: 0,
+    sameSite: "Lax",
+    secure: false,
+  });
+  ctx.body = null;
+  ctx.request.status = 204;
+};
+logOut.validationScheme = null;
 
 // -------------------
 // Check password
@@ -238,6 +289,8 @@ module.exports = (app) => {
   );
   router.post("/login", validate(logIn.validationScheme), logIn);
   router.post("/register", validate(register.validationScheme), register);
+  router.post("/refresh", validate(refresh.validationScheme), refresh);
+  router.post("/logout", validate(logOut.validationScheme), logOut);
   router.post(
     "/check-password",
     secureRoute,

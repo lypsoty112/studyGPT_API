@@ -6,12 +6,16 @@ const ServiceError = require("../core/serviceError");
 const jwt = require("jsonwebtoken");
 
 const config = require("config");
-const { findByEmail } = require("../repository/user");
+const { findByEmail, findById } = require("../repository/user");
 const JWT_SECRET = config.get("jwt.secret");
+const JWT_REFRESH_SECRET = config.get("jwt.refresh.secret");
 const JWT_EXPIRES_IN = config.get("jwt.expiresIn");
-const ENCRYPTION_KEY = config.get("encryption.key");
+const JWT_REFRESH_EXPIRES_IN = config.get("jwt.refresh.expiresIn");
 const bcrypt = require("bcryptjs");
 const { getTokenInfo } = require("./tokenInfo");
+const { encryptNumber, decryptNumber } = require("./encryption");
+
+// TODO: add a refresh token
 
 // -------------------
 // Logging
@@ -20,10 +24,6 @@ const debugLog = (message, meta = {}) => {
   if (!this.logger) this.logger = getLogger();
   this.logger.debug(message, meta);
 };
-
-function encryptNumber(number) {
-  return number ^ ENCRYPTION_KEY; // XOR operation for encryption
-}
 
 const createToken = (user) => {
   const token = jwt.sign(
@@ -39,7 +39,22 @@ const createToken = (user) => {
   return token;
 };
 
+const createRefreshToken = (user) => {
+  const token = jwt.sign(
+    {
+      user_id: encryptNumber(user.user_id),
+    },
+    JWT_REFRESH_SECRET,
+    {
+      expiresIn: JWT_REFRESH_EXPIRES_IN,
+    }
+  );
+
+  return token;
+};
+
 // -------------------
+
 // Role validation
 // -------------------
 const validateRoles = (roles) => {
@@ -59,7 +74,7 @@ const validateRoles = (roles) => {
   };
 };
 
-module.exports = async function (userObject) {
+const authenticate = async function (userObject) {
   // Check the password
   debugLog(`Authenticating user: ${JSON.stringify(userObject)}`);
   let user = userObject;
@@ -74,10 +89,41 @@ module.exports = async function (userObject) {
   }
 
   // Create the token
-  return { token: createToken(userFound), message: "Auth successful" };
+  return [
+    {
+      token: createToken(userFound),
+      message: "Auth successful",
+    },
+    createRefreshToken(userFound),
+  ];
+};
+
+const authenticateRefreshToken = async function (refreshToken) {
+  debugLog(`Authenticating user: ${JSON.stringify(refreshToken)}`);
+  // Validate the refresh token
+  jwt.verify(refreshToken, JWT_REFRESH_SECRET, (err, decoded) => {
+    if (err) {
+      throw ServiceError.unauthorized("Invalid refresh token");
+    }
+  });
+  // Get the user
+  let user = jwt.decode(refreshToken);
+  // Check if  the user exists (by id)
+  let userFound = await findById(decryptNumber(user.user_id));
+  if (!userFound) {
+    throw ServiceError.notFound(`user ${user.email} not found`);
+  }
+
+  // Return the token
+  return {
+    token: createToken(userFound),
+    message: "Auth successful",
+  };
 };
 
 module.exports.validateRoles = validateRoles;
+module.exports.authenticate = authenticate;
+module.exports.authenticateRefreshToken = authenticateRefreshToken;
 module.exports.roles = {
   admin: [1],
   customer: [2, 3],

@@ -9,6 +9,9 @@ module.exports = {
   },
   jwt: {
     secret: "JWT_SECRET",
+    refresh: {
+      secret: "JWT_REFRESH_SECRET",
+    },
   },
   encryption: {
     key: "ENCRYPTION_KEY",

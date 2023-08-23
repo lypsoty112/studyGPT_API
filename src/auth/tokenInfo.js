@@ -1,9 +1,4 @@
-const config = require("config");
-const ENCRYPTION_KEY = config.get("encryption.key");
-
-function decryptNumber(encryptedNumber) {
-  return encryptedNumber ^ ENCRYPTION_KEY; // XOR operation for decryption
-}
+const { decryptNumber } = require("./encryption");
 
 const getTokenInfo = (ctx) => {
   return {
