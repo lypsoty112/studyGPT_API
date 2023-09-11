@@ -15,8 +15,6 @@ const bcrypt = require("bcryptjs");
 const { getTokenInfo } = require("./tokenInfo");
 const { encryptNumber, decryptNumber } = require("./encryption");
 
-// TODO: add a refresh token
-
 // -------------------
 // Logging
 // -------------------
