@@ -1,9 +1,11 @@
 const summaryRepo = require("../repository/summary");
+const parameterService = require("./parameter");
 const { getLogger } = require("../core/logging");
 const ServiceError = require("../core/serviceError");
 const { spawn } = require("child_process");
 const config = require("config");
-const pythonPath = config.get("process.path");
+const { debug } = require("console");
+const ai_api = config.get("ai.api");
 
 // -------------------
 // Logging
@@ -127,37 +129,43 @@ const newSummary = async (
   // TODO: implement newSummary for summary service
   // Create the summary
   debugLog(`Creating new summary based on ${JSON.stringify(file)}`);
-  // Call the python script
-  /*
-  const pythonProcess = spawn("python", [
-    pythonPath,
-    file.path,
-    file.encoding,
-    file.mimetype,
-    file.name,
-    file.size,
-  ]);
-  // Handle the output/error events of the Python process
-  pythonProcess.stdout.on("data", (data) => {
-    // Handle the output from the Python script
-    console.log(`Python script output: ${data}`);
-  });
+  // Create the body for the AI API
 
-  pythonProcess.stderr.on("data", (data) => {
-    // Handle any error output from the Python script
-    console.error(`Error from Python script: ${data}`);
+  // Ping the AI API
+  const pingResponse = await fetch(ai_api + "/health/ping", {
+    method: "GET",
   });
+  if (pingResponse.status != 200) {
+    throw ServiceError.internalServerError("AI API is not available");
+  }
+  // Send the file to the AI API
+  // This is a form data request
+  const formData = new FormData();
+  formData.append("title", "Test");
+  formData.append("description", "test");
+  formData.append("parameters", "[1, 3, 5]");
+  formData.append("user_id", 1);
+  // File value:  {"fieldname":"file","originalname":"Betaling .pdf","encoding":"7bit","mimetype":"application/pdf","destination":"data/uploads","filename":"300d3ad43cc4d0e253085f0e7b5a7cde","path":"data\\uploads\\300d3ad43cc4d0e253085f0e7b5a7cde","size":14925}
+  // Send the actual blob
 
-  // Wait for the Python process to exit
-  await new Promise((resolve) => {
-    pythonProcess.on("close", (code) => {
-      console.log(`Python script exited with code ${code}`);
-      resolve();
-    });
+  const fileBlob = new Blob([file], { type: file.mimetype });
+  formData.append("file", fileBlob, file.originalname);
+
+  const fileResponse = await fetch(ai_api + "/ai/create", {
+    method: "POST",
+    body: formData,
   });
-  */
-  // Return the summary
-  return findById(integerToBase64(1), user_id);
+  if (fileResponse.status != 200) {
+    throw ServiceError.internalServerError("Something went wrong with the AI");
+  }
+
+  const fileResponseJson = await fileResponse.json();
+  debugLog(
+    `Received response from AI API: ${JSON.stringify(fileResponseJson)}`
+  );
+  // Get the summary id from the response
+  const summary_id = fileResponseJson.data.summary_id;
+  return findById(integerToBase64(summary_id), user_id);
 };
 
 // -------------------

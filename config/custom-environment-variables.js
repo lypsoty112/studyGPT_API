@@ -16,4 +16,7 @@ module.exports = {
   encryption: {
     key: "ENCRYPTION_KEY",
   },
+  ai: {
+    api: "AI_API",
+  },
 };
