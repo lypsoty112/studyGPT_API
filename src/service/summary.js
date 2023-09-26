@@ -6,6 +6,8 @@ const { spawn } = require("child_process");
 const config = require("config");
 const { debug } = require("console");
 const ai_api = config.get("ai.api");
+const fs = require("fs");
+const { Readable } = require("stream");
 
 // -------------------
 // Logging
@@ -144,11 +146,12 @@ const newSummary = async (
   formData.append("title", "Test");
   formData.append("description", "test");
   formData.append("parameters", "[1, 3, 5]");
-  formData.append("user_id", 1);
+  formData.append("user_id", "1");
   // File value:  {"fieldname":"file","originalname":"Betaling .pdf","encoding":"7bit","mimetype":"application/pdf","destination":"data/uploads","filename":"300d3ad43cc4d0e253085f0e7b5a7cde","path":"data\\uploads\\300d3ad43cc4d0e253085f0e7b5a7cde","size":14925}
   // Send the actual blob
+  const fileBuffer = fs.readFileSync(file.path); // Read the file into a buffer
+  const fileBlob = new Blob([fileBuffer], { type: file.mimetype }); // Convert the buffer to a Blob
 
-  const fileBlob = new Blob([file], { type: file.mimetype });
   formData.append("file", fileBlob, file.originalname);
 
   const fileResponse = await fetch(ai_api + "/ai/create", {
