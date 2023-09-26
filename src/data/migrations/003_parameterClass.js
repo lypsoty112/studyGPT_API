@@ -2,11 +2,14 @@ const { tables } = require("..");
 
 exports.up = function (knex) {
   return knex.schema.createTable(tables.parameterClass, function (table) {
-    table.increments("parameter_class_id").unsigned().primary();
-    table.integer("class_selectionType").notNullable();
-    table.text("class_command");
-    table.text("class_description");
-    table.string("class_name", 255);
+    table.increments("class_id").unsigned().primary();
+    table.string("name", 255);
+    table.text("description").defaultTo("");
+    table.text("prompt").defaultTo("");
+    table.integer("selection_type"); // 0 = single, 1 = multiple
+    table.integer("implemented").defaultTo(0); // 0 = not implemented, 1 = implemented
+    table.integer("allow_empty"); // 0 = not allowed, 1 = allowed
+    table.integer("premium").defaultTo(0); // 0 = not premium, 1 = premium
   });
 };
 

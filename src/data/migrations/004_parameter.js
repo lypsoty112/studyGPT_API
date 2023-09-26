@@ -3,13 +3,13 @@ const { tables } = require("..");
 exports.up = function (knex) {
   return knex.schema.createTable(tables.parameter, function (table) {
     table.increments("parameter_id").unsigned().primary();
-    table.text("command");
-    table.text("description");
+    table.integer("class_id").unsigned();
     table.string("name", 255);
-    table.integer("parameter_class_id").unsigned();
-    table
-      .foreign("parameter_class_id")
-      .references(`${tables.parameterClass}.parameter_class_id`);
+    table.text("description").defaultTo("");
+    table.text("prompt").defaultTo("");
+    table.integer("implemented").defaultTo(0); // 0 = not implemented, 1 = implemented
+    table.integer("premium").defaultTo(0); // 0 = not premium, 1 = premium
+    table.foreign("class_id").references(`${tables.parameterClass}.class_id`);
   });
 };
 
