@@ -13,7 +13,7 @@ module.exports = {
         class_id: 1,
         name: "Full Summary",
         description: "A full summary of the given document.",
-        prompt: "", // TODO: Add prompt
+        prompt: "summary",
         implemented: 1, // 0 = not implemented, 1 = implemented
         premium: 0, // 0 = not premium, 1 = premium
       },
@@ -22,7 +22,7 @@ module.exports = {
         class_id: 1,
         name: "Bullet Points",
         description: "A list of bullet points summarizing the given document.",
-        prompt: "", // TODO: Add prompt
+        prompt: "bullet-point summary",
         implemented: 1, // 0 = not implemented, 1 = implemented
         premium: 0, // 0 = not premium, 1 = premium
       },
@@ -32,7 +32,7 @@ module.exports = {
         name: "Terms & Definitions",
         description:
           "A list of terms and their definitions from the given document.",
-        prompt: "", // TODO: Add prompt
+        prompt: "list of terms & definitions",
         implemented: 1, // 0 = not implemented, 1 = implemented
         premium: 0, // 0 = not premium, 1 = premium
       },
@@ -42,7 +42,7 @@ module.exports = {
         class_id: 2,
         name: "Important Sentences",
         description: "The most important sentences from the given document.",
-        prompt: "", // TODO: Add prompt
+        prompt: "the most important sentences from the given document",
         implemented: 1, // 0 = not implemented, 1 = implemented
         premium: 0, // 0 = not premium, 1 = premium
       },
@@ -51,7 +51,7 @@ module.exports = {
         class_id: 2,
         name: "Important Words",
         description: "The most important words from the given document.",
-        prompt: "", // TODO: Add prompt
+        prompt: "the most important words",
         implemented: 1, // 0 = not implemented, 1 = implemented
         premium: 0, // 0 = not premium, 1 = premium
       },
@@ -60,7 +60,7 @@ module.exports = {
         class_id: 2,
         name: "Definitions",
         description: "The definitions of the concepts from the given document.",
-        prompt: "", // TODO: Add prompt
+        prompt: "all definitions",
         implemented: 1, // 0 = not implemented, 1 = implemented
         premium: 0, // 0 = not premium, 1 = premium
       },
@@ -70,7 +70,7 @@ module.exports = {
         class_id: 3,
         name: "Bold, Italic & Underline",
         description: "Highlight the summary using boldn, italic & underlining.",
-        prompt: "", // TODO: Add prompt
+        prompt: "bold, italic & underline formatting",
         implemented: 1, // 0 = not implemented, 1 = implemented
         premium: 1, // 0 = not premium, 1 = premium
       },
@@ -79,7 +79,7 @@ module.exports = {
         class_id: 3,
         name: "Colored highlighting",
         description: "Highlight the summary using colored highlighting.",
-        prompt: "", // TODO: Add prompt
+        prompt: "bold, italic & underline formatting",
         implemented: 1, // 0 = not implemented, 1 = implemented
         premium: 1, // 0 = not premium, 1 = premium
       },
@@ -89,7 +89,7 @@ module.exports = {
         class_id: 4,
         name: "Introduction",
         description: "Start the summary with an introduction.",
-        prompt: "", // TODO: Add prompt
+        prompt: "an introduction (including header)",
         implemented: 1, // 0 = not implemented, 1 = implemented
         premium: 0, // 0 = not premium, 1 = premium
       },
@@ -98,7 +98,7 @@ module.exports = {
         class_id: 4,
         name: "Table of Contents",
         description: "Start the summary with a table of contents.",
-        prompt: "", // TODO: Add prompt
+        prompt: "a table of contents",
         implemented: 1, // 0 = not implemented, 1 = implemented
         premium: 0, // 0 = not premium, 1 = premium
       },
@@ -108,7 +108,7 @@ module.exports = {
         class_id: 5,
         name: "TL;DR",
         description: "End the summary with a TL;DR.",
-        prompt: "", // TODO: Add prompt
+        prompt: "a TL;DR, including headers",
         implemented: 1, // 0 = not implemented, 1 = implemented
         premium: 0, // 0 = not premium, 1 = premium
       },
@@ -117,7 +117,8 @@ module.exports = {
         class_id: 5,
         name: "Test Yourself",
         description: "End the summary with a test for the reader to take.",
-        prompt: "", // TODO: Add prompt
+        prompt:
+          "a small test that exists of 3 questions from each  chapter (including header)",
         implemented: 0, // 0 = not implemented, 1 = implemented
         premium: 0, // 0 = not premium, 1 = premium
       },
@@ -126,7 +127,8 @@ module.exports = {
         class_id: 5,
         name: "Things to remember",
         description: "End the summary with a list of things to remember.",
-        prompt: "", // TODO: Add prompt
+        prompt:
+          "a small list of things & contents to remember (include header)",
         implemented: 0, // 0 = not implemented, 1 = implemented
         premium: 0, // 0 = not premium, 1 = premium
       },
