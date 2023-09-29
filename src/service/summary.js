@@ -17,6 +17,51 @@ const debugLog = (message, meta = {}) => {
   this.logger.debug(message, meta);
 };
 
+async function checkParameters(parameters) {
+  // Get all the parameters
+  const allParameters = await parameterService.findAll();
+  // Make sure that there's at least one parameter
+  if (parameters.length == 0)
+    throw ServiceError.validationFailed("No parameters provided");
+
+  // Get the distinct parameter classes based on class id
+  let classes = allParameters.map((p) => p.class);
+  // Use reduce and Map to extract distinct classes based on id
+  classes = Array.from(
+    classes.reduce((map, item) => map.set(item.id, item), new Map()).values()
+  );
+
+  // Add an array to each class, which will contain the parameter ids
+  classes = classes.map((c) => {
+    return { class: c, param: [] };
+  });
+  // Add the parameters to their respective classes
+  for (let i = 0; i < allParameters.length; i++) {
+    let j = allParameters[i];
+    let index = classes.findIndex((c) => c.class.id === j.class.id);
+    classes[index].param.push(j);
+  }
+  for (let i = 0; i < classes.length; i++) {
+    let c = classes[i];
+    let parametersIncluded = 0;
+    for (let j = 0; j < c.param.length; j++) {
+      let p = c.param[j];
+      if (parameters.find((param) => param === p.id)) {
+        parametersIncluded++;
+      }
+    }
+    // Check if the number of parameters included in the class is allowed
+    if (parametersIncluded == 0 && c.class.allow_empty == 0) {
+      throw ServiceError.validationFailed("Class empty: " + c.class.name);
+    }
+    if (parametersIncluded > 1 && c.class["selection_type"] == 0) {
+      throw ServiceError.validationFailed(
+        "Wrong amount of selection: " + c.class.name
+      );
+    }
+  }
+}
+
 function integerToBase64(integer) {
   return btoa(
     String.fromCharCode.apply(
@@ -130,8 +175,9 @@ const newSummary = async (
 ) => {
   // TODO: implement newSummary for summary service
   // Create the summary
-  debugLog(`Creating new summary based on ${JSON.stringify(file)}`);
-  // Create the body for the AI API
+  convertedParameters = JSON.parse(parameters);
+  // TODO: Check the parameters
+  await checkParameters(convertedParameters);
 
   // Ping the AI API
   const pingResponse = await fetch(ai_api + "/health/ping", {
@@ -143,10 +189,10 @@ const newSummary = async (
   // Send the file to the AI API
   // This is a form data request
   const formData = new FormData();
-  formData.append("title", "Test");
-  formData.append("description", "test");
-  formData.append("parameters", "[1, 3, 5]");
-  formData.append("user_id", "1");
+  formData.append("title", title);
+  formData.append("description", description);
+  formData.append("parameters", parameters);
+  formData.append("user_id", user_id);
   // File value:  {"fieldname":"file","originalname":"Betaling .pdf","encoding":"7bit","mimetype":"application/pdf","destination":"data/uploads","filename":"300d3ad43cc4d0e253085f0e7b5a7cde","path":"data\\uploads\\300d3ad43cc4d0e253085f0e7b5a7cde","size":14925}
   // Send the actual blob
   const fileBuffer = fs.readFileSync(file.path); // Read the file into a buffer

@@ -36,7 +36,7 @@ module.exports = {
         prompt: "Highlight using [PARAMETERS]. [FOLLOWING]",
         selection_type: 0, // 0 = single, 1 = multiple
         implemented: 1, // 0 = not implemented, 1 = implemented
-        allow_empty: 0, // 0 = not allowed, 1 = allowed
+        allow_empty: 1, // 0 = not allowed, 1 = allowed
         premium: 0, // 0 = not premium, 1 = premium
       },
       {

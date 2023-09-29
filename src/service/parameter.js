@@ -21,27 +21,25 @@ const debugLog = (message, meta = {}) => {
   class_selectionType: 'Type B */
 
 const outgoingFormat = ({
-  parameter_id,
-  command,
-  description,
-  name,
-  parameter_class_id,
-  class_command,
-  class_description,
+  class_id,
   class_name,
-  class_selectionType,
+  class_description,
+  selection_type,
+  allow_empty,
+  parameter_id,
+  name,
+  description,
 }) => {
   return {
     id: parameter_id,
-    command,
     description,
     name,
     class: {
-      id: parameter_class_id,
-      command: class_command,
+      id: class_id,
       description: class_description,
       name: class_name,
-      selectionType: class_selectionType,
+      selectionType: selection_type,
+      allow_empty: allow_empty,
     },
   };
 };
@@ -108,6 +106,8 @@ const deleteById = async (parameterId) => {
   await parameterRepo.deleteById(parameterId);
   return;
 };
+
+//
 
 module.exports = {
   findAll,

@@ -6,13 +6,26 @@ const { getLogger } = require("../core/logging");
 // ------------------------------------
 const findAll = async () => {
   return await getKnex()(tables.parameter)
-    .select()
+    .select(
+      `${tables.parameterClass}.class_id as class_id`,
+      `${tables.parameterClass}.name as class_name`,
+      `${tables.parameterClass}.description as class_description`,
+      `${tables.parameterClass}.selection_type as selection_type`,
+      `${tables.parameterClass}.allow_empty as allow_empty`,
+      `${tables.parameter}.parameter_id`,
+      `${tables.parameter}.name`,
+      `${tables.parameter}.description`
+    )
     .join(
       tables.parameterClass,
-      `${tables.parameter}.parameter_class_id`,
+      `${tables.parameter}.class_id`,
       "=",
-      `${tables.parameterClass}.parameter_class_id`
+      `${tables.parameterClass}.class_id`
     )
+    .where({
+      [`${tables.parameterClass}.implemented`]: 1,
+      [`${tables.parameter}.implemented`]: 1,
+    })
     .orderBy("parameter_id");
 };
 
@@ -25,9 +38,9 @@ const findById = async (parameterId) => {
       .select()
       .join(
         tables.parameterClass,
-        `${tables.parameter}.parameter_class_id`,
+        `${tables.parameter}.class_id`,
         "=",
-        `${tables.parameterClass}.parameter_class_id`
+        `${tables.parameterClass}.class_id`
       )
       .where({ parameter_id: parameterId })
       .first();
