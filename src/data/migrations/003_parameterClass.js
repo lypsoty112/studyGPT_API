@@ -10,6 +10,7 @@ exports.up = function (knex) {
     table.integer("implemented").defaultTo(0); // 0 = not implemented, 1 = implemented
     table.integer("allow_empty"); // 0 = not allowed, 1 = allowed
     table.integer("premium").defaultTo(0); // 0 = not premium, 1 = premium
+    table.integer("position").defaultTo(0);
   });
 };
 

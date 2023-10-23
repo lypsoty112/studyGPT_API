@@ -13,7 +13,7 @@ module.exports = {
         class_id: 1,
         name: "Full Summary",
         description: "A full summary of the given document.",
-        prompt: "summary",
+        prompt: "very detailed summary",
         implemented: 1, // 0 = not implemented, 1 = implemented
         premium: 0, // 0 = not premium, 1 = premium
       },
@@ -22,7 +22,7 @@ module.exports = {
         class_id: 1,
         name: "Bullet Points",
         description: "A list of bullet points summarizing the given document.",
-        prompt: "bullet-point summary",
+        prompt: "very detailed summary using only bullet-points",
         implemented: 1, // 0 = not implemented, 1 = implemented
         premium: 0, // 0 = not premium, 1 = premium
       },
@@ -32,7 +32,7 @@ module.exports = {
         name: "Terms & Definitions",
         description:
           "A list of terms and their definitions from the given document.",
-        prompt: "list of terms & definitions",
+        prompt: "complete list of terms & definitions",
         implemented: 1, // 0 = not implemented, 1 = implemented
         premium: 0, // 0 = not premium, 1 = premium
       },
@@ -42,7 +42,7 @@ module.exports = {
         class_id: 2,
         name: "Important Sentences",
         description: "The most important sentences from the given document.",
-        prompt: "the most important sentences from the given document",
+        prompt: "the most important sentences",
         implemented: 1, // 0 = not implemented, 1 = implemented
         premium: 0, // 0 = not premium, 1 = premium
       },
@@ -98,7 +98,7 @@ module.exports = {
         class_id: 4,
         name: "Table of Contents",
         description: "Start the summary with a table of contents.",
-        prompt: "a table of contents",
+        prompt: "a table of contents (including header)",
         implemented: 1, // 0 = not implemented, 1 = implemented
         premium: 0, // 0 = not premium, 1 = premium
       },
@@ -108,7 +108,7 @@ module.exports = {
         class_id: 5,
         name: "TL;DR",
         description: "End the summary with a TL;DR.",
-        prompt: "a TL;DR, including headers",
+        prompt: "a TL;DR (including header)",
         implemented: 1, // 0 = not implemented, 1 = implemented
         premium: 0, // 0 = not premium, 1 = premium
       },
@@ -119,7 +119,7 @@ module.exports = {
         description: "End the summary with a test for the reader to take.",
         prompt:
           "a small test that exists of 3 questions from each  chapter (including header)",
-        implemented: 0, // 0 = not implemented, 1 = implemented
+        implemented: 1, // 0 = not implemented, 1 = implemented
         premium: 0, // 0 = not premium, 1 = premium
       },
       {
@@ -128,8 +128,8 @@ module.exports = {
         name: "Things to remember",
         description: "End the summary with a list of things to remember.",
         prompt:
-          "a small list of things & contents to remember (include header)",
-        implemented: 0, // 0 = not implemented, 1 = implemented
+          "a small list of things & contents to remember (including header)",
+        implemented: 1, // 0 = not implemented, 1 = implemented
         premium: 0, // 0 = not premium, 1 = premium
       },
     ]);
